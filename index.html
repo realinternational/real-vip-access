@@ -111,37 +111,38 @@
 
 <body class="flex flex-col md:flex-row h-screen">
 
-    <!-- VIP Login Overlay -->
-    <div id="login-overlay" class="fixed inset-0 z-50 bg-[#17433a] flex flex-col items-center justify-center p-6">
-        <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/stardust.png');"></div>
-        <div class="bg-white/5 backdrop-blur-md border border-[#b0955b]/30 p-10 md:p-14 rounded-3xl shadow-2xl w-full max-w-md relative z-10 text-center">
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="fixed inset-0 bg-[#f3eee4] flex flex-col items-center justify-center p-6 z-50">
+        <div class="absolute inset-0 opacity-40" style="background-image: url('https://www.transparenttextures.com/patterns/stardust.png');"></div>
+        <div class="bg-white/90 backdrop-blur-md border border-[#b0955b]/30 p-10 md:p-14 rounded-3xl shadow-2xl w-full max-w-md text-center relative z-10">
             
-            <!-- 替换后的专属 Logo，高度与原先保持一致，宽度自适应，并包含安全 Fallback -->
-            <img src="./logo.png" alt="Real International Logo" class="h-16 w-auto object-contain mx-auto mb-6 drop-shadow-lg" onerror="this.onerror=null; this.outerHTML=`<div class='w-16 h-16 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-3xl bg-[#0a0a0b] rounded-xl mx-auto mb-6 shadow-lg'>R</div>`;" />
+            <!-- 放大版 Logo：高度从 h-16 提升到了 h-24 (放大50%) -->
+            <img id="login-logo" src="./logo.png" alt="Real International Logo" class="h-24 w-auto object-contain mx-auto mb-8 drop-shadow-sm" onerror="this.style.display='none'; document.getElementById('login-logo-fallback').classList.remove('hidden');" />
+            <!-- 备用占位符也同步放大到 w-24 h-24，字体放大到 text-5xl -->
+            <div id="login-logo-fallback" class="hidden w-24 h-24 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-5xl bg-[#17433a] rounded-xl mx-auto mb-8 shadow-lg">R</div>
 
-            <h1 class="text-3xl font-black text-white uppercase tracking-tighter italic mb-2">Private <span class="text-[#b0955b]">Access</span></h1>
+            <h1 class="text-3xl font-black text-[#17433a] uppercase italic mb-2 tracking-tighter">Private <span class="text-[#b0955b]">Access</span></h1>
             
-            <!-- 1. 更新了机构级描述文案，增加了 leading-relaxed 让多行英文排版更显呼吸感 -->
-            <p class="text-[#99b2ac] text-xs font-medium mb-8 leading-relaxed">Proprietary investment terminal for Real International investors. Features automated portfolio tracking, asset management milestones, and sophisticated pro-forma modeling.</p>
+            <!-- 精准修改：替换为你要求的全英文专业陈述 -->
+            <p class="text-[#717375] text-xs font-medium mb-8 leading-relaxed">Proprietary investment terminal for Real International investors. Features automated portfolio tracking, asset management milestones, and sophisticated pro-forma modeling.</p>
             
             <div class="space-y-4 text-left">
-                <div>
-                    <!-- 2. Client 改为了 Investor -->
-                    <label class="block text-[10px] font-black uppercase text-[#b0955b] tracking-widest mb-2">Investor Access ID</label>
-                    
-                    <!-- 3. 删除了 placeholder="e.g. 001" -->
-                    <input type="text" id="clientIdInput" class="w-full bg-[#0a0a0b]/50 border border-[#b0955b]/50 text-white p-4 rounded-xl focus:outline-none focus:border-[#b0955b] focus:ring-1 focus:ring-[#b0955b] transition-all font-mono" onkeypress="if(event.key === 'Enter') authenticateVIP()">
-                </div>
-                <button id="loginBtn" onclick="authenticateVIP()" class="w-full bg-[#b0955b] text-[#17433a] font-black uppercase tracking-widest py-4 rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(176,149,91,0.3)]">
-                    <span id="loginBtnText">Access Dashboard</span>
+                <!-- 精准修改：更改为 Investor Access ID，去除了 placeholder -->
+                <label class="block text-[10px] font-black uppercase text-[#b0955b] tracking-widest mb-2">Investor Access ID</label>
+                <input type="text" id="clientIdInput" class="w-full bg-stone-50 border border-stone-200 text-[#17433a] p-4 rounded-xl focus:outline-none focus:border-[#b0955b] focus:ring-1 focus:ring-[#b0955b] transition-all font-mono" onkeypress="if(event.key === 'Enter') authenticate()">
+                
+                <button id="loginBtn" onclick="authenticate()" class="w-full bg-[#17433a] text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-[#b0955b] transition-all flex items-center justify-center gap-2 shadow-lg">
+                    <span id="loginBtnText">Verify Identity</span>
                     <div id="loginLoader" class="loader hidden"></div>
                 </button>
             </div>
-            <p id="loginError" class="text-red-400 text-xs mt-4 hidden font-medium"><i class="fa-solid fa-triangle-exclamation"></i> Invalid ID or Data Source Sync Failed.</p>
+            <p id="loginError" class="text-red-500 text-[10px] mt-4 hidden font-bold text-center">
+                <i class="fa-solid fa-triangle-exclamation"></i> Security verification failed. <br>Please check ID or contact administrator.
+            </p>
         </div>
     </div>
 
-    <!-- Sidebar Navigation -->
+    <!-- Sidebar -->
     <aside class="w-full md:w-80 bg-white border-r border-stone-200 flex flex-col z-30 shadow-2xl overflow-y-auto hidden md:flex" id="sidebar">
         <div class="p-8">
             <div class="mb-10 cursor-pointer" onclick="window.open('https://realinternational.com/', '_blank')">
