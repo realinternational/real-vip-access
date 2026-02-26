@@ -115,7 +115,10 @@
     <div id="login-overlay" class="fixed inset-0 z-50 bg-[#17433a] flex flex-col items-center justify-center p-6">
         <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/stardust.png');"></div>
         <div class="bg-white/5 backdrop-blur-md border border-[#b0955b]/30 p-10 md:p-14 rounded-3xl shadow-2xl w-full max-w-md relative z-10 text-center">
-            <div class="w-16 h-16 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-3xl bg-[#0a0a0b] rounded-xl mx-auto mb-6 shadow-lg">R</div>
+            
+            <!-- 替换后的专属 Logo，高度与原先保持一致，宽度自适应，并包含安全 Fallback -->
+            <img src="./logo.png" alt="Real International Logo" class="h-16 w-auto object-contain mx-auto mb-6 drop-shadow-lg" onerror="this.onerror=null; this.outerHTML=`<div class='w-16 h-16 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-3xl bg-[#0a0a0b] rounded-xl mx-auto mb-6 shadow-lg'>R</div>`;" />
+
             <h1 class="text-3xl font-black text-white uppercase tracking-tighter italic mb-2">Private <span class="text-[#b0955b]">Access</span></h1>
             <p class="text-[#99b2ac] text-xs font-medium mb-8">Exclusive portal for Real International VIP Partners. Securely connected via enterprise data nodes.</p>
             
