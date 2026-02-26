@@ -120,12 +120,17 @@
             <img src="./logo.png" alt="Real International Logo" class="h-16 w-auto object-contain mx-auto mb-6 drop-shadow-lg" onerror="this.onerror=null; this.outerHTML=`<div class='w-16 h-16 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-3xl bg-[#0a0a0b] rounded-xl mx-auto mb-6 shadow-lg'>R</div>`;" />
 
             <h1 class="text-3xl font-black text-white uppercase tracking-tighter italic mb-2">Private <span class="text-[#b0955b]">Access</span></h1>
-            <p class="text-[#99b2ac] text-xs font-medium mb-8">Exclusive portal for Real International VIP Partners. Securely connected via enterprise data nodes.</p>
+            
+            <!-- 1. 更新了机构级描述文案，增加了 leading-relaxed 让多行英文排版更显呼吸感 -->
+            <p class="text-[#99b2ac] text-xs font-medium mb-8 leading-relaxed">Proprietary investment terminal for Real International investors. Features automated portfolio tracking, asset management milestones, and sophisticated pro-forma modeling.</p>
             
             <div class="space-y-4 text-left">
                 <div>
-                    <label class="block text-[10px] font-black uppercase text-[#b0955b] tracking-widest mb-2">Client Access ID</label>
-                    <input type="text" id="clientIdInput" placeholder="e.g. 001" class="w-full bg-[#0a0a0b]/50 border border-[#b0955b]/50 text-white p-4 rounded-xl focus:outline-none focus:border-[#b0955b] focus:ring-1 focus:ring-[#b0955b] transition-all font-mono placeholder-stone-600" onkeypress="if(event.key === 'Enter') authenticateVIP()">
+                    <!-- 2. Client 改为了 Investor -->
+                    <label class="block text-[10px] font-black uppercase text-[#b0955b] tracking-widest mb-2">Investor Access ID</label>
+                    
+                    <!-- 3. 删除了 placeholder="e.g. 001" -->
+                    <input type="text" id="clientIdInput" class="w-full bg-[#0a0a0b]/50 border border-[#b0955b]/50 text-white p-4 rounded-xl focus:outline-none focus:border-[#b0955b] focus:ring-1 focus:ring-[#b0955b] transition-all font-mono" onkeypress="if(event.key === 'Enter') authenticateVIP()">
                 </div>
                 <button id="loginBtn" onclick="authenticateVIP()" class="w-full bg-[#b0955b] text-[#17433a] font-black uppercase tracking-widest py-4 rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(176,149,91,0.3)]">
                     <span id="loginBtnText">Access Dashboard</span>
