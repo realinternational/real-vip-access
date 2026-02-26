@@ -113,7 +113,6 @@
 
     <!-- VIP Login Overlay (浅色系高雅改版 + 霸气大Logo) -->
     <div id="login-overlay" class="fixed inset-0 z-50 bg-[#f3eee4] flex flex-col items-center justify-center p-6">
-        <div class="absolute inset-0 opacity-40" style="background-image: url('https://www.transparenttextures.com/patterns/stardust.png');"></div>
         <div class="bg-white/90 backdrop-blur-md border border-[#b0955b]/30 p-10 md:p-14 rounded-3xl shadow-2xl w-full max-w-md relative z-10 text-center">
             
             <!-- 替换后的专属 Logo，高度放大到 h-28，完美适配浅色背景 -->
@@ -137,7 +136,8 @@
                     <div id="loginLoader" class="loader hidden"></div>
                 </button>
             </div>
-            <p id="loginError" class="text-red-500 text-xs mt-4 hidden font-medium"><i class="fa-solid fa-triangle-exclamation"></i> Invalid ID or Data Source Sync Failed.</p>
+            <!-- 修改了提示文本：简单干净 -->
+            <p id="loginError" class="text-red-500 text-xs mt-4 hidden font-medium"><i class="fa-solid fa-triangle-exclamation"></i> Investor not found</p>
         </div>
     </div>
 
@@ -173,7 +173,7 @@
                 </div>
             </div>
             <button onclick="window.open('https://meetings-na2.hubspot.com/anna762', '_blank')" class="w-full py-4 bg-[#b0955b] text-[#17433a] rounded-xl text-[11px] font-black hover:bg-[#a3804f] transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-calendar-check text-sm"></i> BOOK ADVISORY
+                <i class="fa-solid fa-calendar-check text-sm"></i> SCHEDULE MEETING
             </button>
         </div>
     </aside>
@@ -207,8 +207,10 @@
         <div id="section-overview" class="view-section active space-y-8">
             <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-2">
                 <div>
-                    <h2 class="text-3xl font-black text-[#0a0a0b] tracking-tighter uppercase italic">Institutional <span class="text-[#b0955b]">Snapshot</span></h2>
-                    <p class="text-[#717375] text-sm mt-2 font-medium">Consolidated private holdings. Metrics synced dynamically.</p>
+                    <!-- 修改前: Institutional Snapshot -->
+                    <h2 class="text-3xl font-black text-[#0a0a0b] tracking-tighter uppercase italic">Private Wealth <span class="text-[#b0955b]">Snapshot</span></h2>
+                    <!-- 修改前: Consolidated private holdings. Metrics synced dynamically. -->
+                    <p class="text-[#717375] text-sm mt-2 font-medium">A consolidated view of your exclusive real estate holdings. Metrics dynamically synced to track your long-term wealth accumulation.</p>
                 </div>
                 <div class="bg-[#17433a] px-8 py-5 rounded-2xl shadow-lg text-right text-white border-b-4 border-[#b0955b]">
                     <p class="text-[#99b2ac] text-[10px] font-black uppercase tracking-widest mb-1 italic tracking-tighter">Active Net Principal</p>
@@ -272,7 +274,8 @@
         <div id="section-portfolio" class="view-section space-y-8">
             <header>
                 <h2 class="text-3xl font-black text-[#0a0a0b] uppercase italic">Asset <span class="text-[#b0955b]">Tracker</span></h2>
-                <p class="text-[#717375] text-sm mt-2 font-medium italic">Monitor core milestones and detailed management updates across your active positions.</p>
+                <!-- 修改前: Monitor core milestones and detailed management updates across your active positions. -->
+                <p class="text-[#717375] text-sm mt-2 font-medium italic">Track critical project milestones and direct management updates. Providing complete transparency and peace of mind for your active investments.</p>
             </header>
             <div class="grid grid-cols-1 gap-8" id="portfolioList">
                 <!-- Dynamically populated from Sheet 2 -->
@@ -428,9 +431,7 @@
 
                 if (!client) {
                     console.error("在表格中未匹配到该ID:", inputId);
-                    // 注入透视除错信息：把表格第一行的表头抓出来展示，一眼看出数据是否正确加载
-                    const detectedHeaders = clientsData.length > 0 ? Object.keys(clientsData[0]).join(', ') : '表格无数据/格式空';
-                    throw new Error("ID_NOT_FOUND|" + detectedHeaders);
+                    throw new Error("ID_NOT_FOUND");
                 }
 
                 CURRENT_CLIENT = client;
@@ -461,20 +462,8 @@
                 
             } catch (error) {
                 console.error("Auth Error Details:", error);
-                if (error.message.startsWith("ID_NOT_FOUND")) {
-                    const headers = error.message.split('|')[1] || '';
-                    errorMsg.innerHTML = `
-                        <i class="fa-solid fa-triangle-exclamation"></i> 未找到客户：<b>${inputId}</b>。<br>
-                        <span class="text-[9px] text-stone-400 mt-2 block font-mono border-t border-stone-600/30 pt-2 leading-relaxed text-left">
-                            <b>架构师诊断系统：</b>数据已连通，但在表中未匹配到该词。<br>
-                            <b>系统读取到的表头：</b>[ ${headers} ]<br>
-                            <b>修复建议：</b>请确保填写的ID确切存在于上述表格内，或尝试在Google表中将该列设为纯文本。
-                        </span>`;
-                } else if (error.message === "HTML_RETURNED") {
-                    errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 数据被拦截！请确保Google Sheet已执行「文件」>「共享」>「发布到网络」(Publish to web)。';
-                } else {
-                    errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 数据同步失败。可能由于网络跨域拦截或链接错误。';
-                }
+                // 极简报错，符合机构的干净与利落感
+                errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Investor not found';
                 errorMsg.classList.remove('hidden');
             } finally {
                 btn.disabled = false;
