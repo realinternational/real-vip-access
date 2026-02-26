@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real International | VIP Strategic Investment Cockpit</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PapaParse CDN for parsing Google Sheets CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --brand-gold: #b0955b;
+            --bg-cream: #f3eee4;
+            --forest-green: #17433a;
+            --sage-green: #99b2ac;
+            --gray-text: #717375;
+            --pure-white: #ffffff;
+            --deep-black: #0a0a0b;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-cream); 
+            color: var(--deep-black); 
+            margin: 0; padding: 0;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden; /* Prevent scrolling behind login */
+        }
+
+        /* Loading & Login Overlay Styles */
+        #login-overlay {
+            backdrop-filter: blur(10px);
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .nav-active {
+            background-color: var(--forest-green);
+            color: var(--pure-white) !important;
+            box-shadow: 0 10px 15px -3px rgba(23, 67, 58, 0.3);
+            font-weight: 700;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid rgba(176, 149, 91, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-radius: 1.5rem;
+        }
+
+        .chart-container { position: relative; width: 100%; height: 260px; }
+
+        .vibe-defensive { border-left: 5px solid #e5e7eb; } 
+        .vibe-growth { border-left: 5px solid var(--brand-gold); } 
+        .vibe-stable { border-left: 5px solid var(--sage-green); } 
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .strategy-inner { transition: transform 0.2s ease, box-shadow 0.2s ease; border: 2px solid transparent; border-radius: 1.5rem; }
+        .strategy-checkbox:checked + .strategy-inner {
+            border-color: var(--brand-gold);
+            background-color: var(--pure-white);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* View transition mechanism */
+        .view-section { 
+            position: absolute; 
+            opacity: 0; 
+            pointer-events: none; 
+            visibility: hidden;
+            z-index: -1;
+            width: 100%;
+        }
+        .view-section.active { 
+            position: relative; 
+            opacity: 1; 
+            pointer-events: auto; 
+            visibility: visible;
+            z-index: 1;
+            animation: fadeIn 0.4s ease-out forwards; 
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Spinner */
+        .loader {
+            border: 3px solid rgba(176, 149, 91, 0.3);
+            border-top: 3px solid var(--brand-gold);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body class="flex flex-col md:flex-row h-screen">
+
+    <!-- VIP Login Overlay -->
+    <div id="login-overlay" class="fixed inset-0 z-50 bg-[#17433a] flex flex-col items-center justify-center p-6">
+        <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/stardust.png');"></div>
+        <div class="bg-white/5 backdrop-blur-md border border-[#b0955b]/30 p-10 md:p-14 rounded-3xl shadow-2xl w-full max-w-md relative z-10 text-center">
+            <div class="w-16 h-16 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-3xl bg-[#0a0a0b] rounded-xl mx-auto mb-6 shadow-lg">R</div>
+            <h1 class="text-3xl font-black text-white uppercase tracking-tighter italic mb-2">Private <span class="text-[#b0955b]">Access</span></h1>
+            <p class="text-[#99b2ac] text-xs font-medium mb-8">Exclusive portal for Real International VIP Partners. Securely connected via enterprise data nodes.</p>
+            
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-[#b0955b] tracking-widest mb-2">Client Access ID</label>
+                    <input type="text" id="clientIdInput" placeholder="e.g. 001" class="w-full bg-[#0a0a0b]/50 border border-[#b0955b]/50 text-white p-4 rounded-xl focus:outline-none focus:border-[#b0955b] focus:ring-1 focus:ring-[#b0955b] transition-all font-mono placeholder-stone-600" onkeypress="if(event.key === 'Enter') authenticateVIP()">
+                </div>
+                <button id="loginBtn" onclick="authenticateVIP()" class="w-full bg-[#b0955b] text-[#17433a] font-black uppercase tracking-widest py-4 rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(176,149,91,0.3)]">
+                    <span id="loginBtnText">Access Dashboard</span>
+                    <div id="loginLoader" class="loader hidden"></div>
+                </button>
+            </div>
+            <p id="loginError" class="text-red-400 text-xs mt-4 hidden font-medium"><i class="fa-solid fa-triangle-exclamation"></i> Invalid ID or Data Source Sync Failed.</p>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-full md:w-80 bg-white border-r border-stone-200 flex flex-col z-30 shadow-2xl overflow-y-auto hidden md:flex" id="sidebar">
+        <div class="p-8">
+            <div class="mb-10 cursor-pointer" onclick="window.open('https://realinternational.com/', '_blank')">
+                <img id="company-logo" src="./logo.png" alt="Real International Logo" class="w-56 h-auto object-contain object-left" onerror="this.onerror=null; this.outerHTML='<div class=\\'flex items-center gap-3\\'><div class=\\'w-12 h-12 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-2xl bg-[#17433a] rounded-lg shadow-sm\\'>R</div><div><h1 class=\\'font-extrabold text-[#17433a] text-2xl leading-none tracking-tight italic\\'>REAL <span class=\\'text-[#b0955b]\\'>INT\\'L</span></h1><p class=\\'text-[#717375] text-[0.6rem] font-bold uppercase tracking-[0.3em] mt-1\\'>Capital Advisory</p></div></div>';" />
+            </div>
+
+            <nav class="space-y-2">
+                <button onclick="showSection('overview')" id="nav-overview" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-xl text-sm text-stone-500 hover:text-[#17433a] hover:bg-stone-50 transition-all nav-active">
+                    <i class="fa-solid fa-chart-line w-5"></i> Portfolio Snapshot
+                </button>
+                <button onclick="showSection('portfolio')" id="nav-portfolio" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-xl text-sm text-stone-500 hover:text-[#17433a] hover:bg-stone-50 transition-all">
+                    <i class="fa-solid fa-microscope w-5"></i> Asset Tracker
+                </button>
+                <button onclick="showSection('strategy')" id="nav-strategy" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-xl text-sm text-stone-500 hover:text-[#17433a] hover:bg-stone-50 transition-all">
+                    <i class="fa-solid fa-vial-circle-check w-5"></i> Strategy Lab
+                </button>
+                <button onclick="showSection('news')" id="nav-news" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-xl text-sm text-stone-500 hover:text-[#17433a] hover:bg-stone-50 transition-all">
+                    <i class="fa-regular fa-newspaper w-5"></i> Market Updates
+                </button>
+            </nav>
+        </div>
+
+        <div class="mt-auto p-8 border-t border-stone-100 bg-stone-50">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-xl bg-[#17433a] text-[#b0955b] flex items-center justify-center font-bold italic shadow-md text-lg" id="ui-avatar">VIP</div>
+                <div>
+                    <p class="text-sm font-bold text-[#17433a] tracking-tight" id="ui-client-name">Loading...</p>
+                    <p class="text-[10px] text-[#717375] font-black uppercase tracking-tighter italic" id="ui-client-tier">VIP Investor</p>
+                </div>
+            </div>
+            <button onclick="window.open('https://meetings-na2.hubspot.com/anna762', '_blank')" class="w-full py-4 bg-[#b0955b] text-[#17433a] rounded-xl text-[11px] font-black hover:bg-[#a3804f] transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-calendar-check text-sm"></i> BOOK ADVISORY
+            </button>
+        </div>
+    </aside>
+
+    <!-- Mobile Header -->
+    <header class="md:hidden bg-white border-b border-stone-200 p-4 flex justify-between items-center z-20">
+        <div class='flex items-center gap-2 cursor-pointer' onclick="window.open('https://realinternational.com/', '_blank')">
+            <img id="mobile-logo" src="./logo.png" alt="Real International Logo" class="h-8 w-auto object-contain" onerror="this.onerror=null; this.outerHTML='<div class=\\'flex items-center gap-2\\'><div class=\\'w-8 h-8 border border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-sm bg-[#17433a] rounded-md\\'>R</div><h1 class=\\'font-extrabold text-[#17433a] text-lg leading-none tracking-tight italic\\'>REAL <span class=\\'text-[#b0955b]\\'>INT\\'L</span></h1></div>';" />
+        </div>
+        <button onclick="document.getElementById('sidebar').classList.toggle('hidden')" class="text-[#17433a] text-xl p-2"><i class="fa-solid fa-bars"></i></button>
+    </header>
+
+    <!-- Main Content Panel -->
+    <main class="flex-1 overflow-y-auto no-scrollbar relative p-6 md:p-10" id="main-content" style="opacity: 0;">
+        
+        <div id="notification-banner" class="mb-8 bg-white border border-[#b0955b]/30 rounded-2xl p-4 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all" onclick="showSection('portfolio')">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-[#17433a] rounded-full flex items-center justify-center text-[#b0955b] relative">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="absolute top-0 right-0 w-3 h-3 bg-[#b0955b] border-2 border-[#17433a] rounded-full animate-ping"></span>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-[#17433a]">Portfolio Synced</p>
+                    <p class="text-xs text-[#717375] font-medium">Data verified via live IR internal trackers. <span class="font-bold text-[#b0955b]">Assets optimized.</span></p>
+                </div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-[#b0955b]"></i>
+        </div>
+
+        <!-- View: Overview -->
+        <div id="section-overview" class="view-section active space-y-8">
+            <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-2">
+                <div>
+                    <h2 class="text-3xl font-black text-[#0a0a0b] tracking-tighter uppercase italic">Institutional <span class="text-[#b0955b]">Snapshot</span></h2>
+                    <p class="text-[#717375] text-sm mt-2 font-medium">Consolidated private holdings. Metrics synced dynamically.</p>
+                </div>
+                <div class="bg-[#17433a] px-8 py-5 rounded-2xl shadow-lg text-right text-white border-b-4 border-[#b0955b]">
+                    <p class="text-[#99b2ac] text-[10px] font-black uppercase tracking-widest mb-1 italic tracking-tighter">Active Net Principal</p>
+                    <p class="text-3xl font-bold font-mono text-[#b0955b] tracking-tighter" id="val-net-principal">...</p>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-card p-6 border-b-4 border-[#0a0a0b]">
+                    <p class="text-[#717375] text-[11px] font-black uppercase mb-2 tracking-widest italic tracking-tighter">Cumulative Basis</p>
+                    <p class="text-3xl font-bold text-[#17433a] tracking-tighter font-mono" id="val-cum-basis">...</p>
+                </div>
+                <div class="glass-card p-6 border-b-4 border-[#b0955b]">
+                    <p class="text-[#717375] text-[11px] font-black uppercase mb-2 tracking-widest italic tracking-tighter">Capital Returned</p>
+                    <p class="text-3xl font-bold text-[#b0955b] tracking-tighter font-mono" id="val-cap-returned">...</p>
+                </div>
+                <div class="glass-card p-6 border-b-4 border-[#99b2ac]">
+                    <p class="text-[#717375] text-[11px] font-black uppercase mb-2 tracking-widest italic tracking-tighter">Realized Yield</p>
+                    <p class="text-3xl font-bold text-[#17433a] font-mono tracking-tighter" id="val-realized-yield">...</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-card p-8 rounded-2xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-black text-[#17433a] mb-6 uppercase tracking-widest italic">Alpha Performance vs Market</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between items-end mb-2">
+                                    <span class="text-sm font-bold text-[#17433a]"><i class="fa-solid fa-crown text-[#b0955b] mr-2"></i> Client Portfolio IRR</span>
+                                    <span class="text-2xl font-black text-[#b0955b] font-mono" id="val-irr">...</span>
+                                </div>
+                                <div class="w-full bg-stone-100 rounded-full h-3 overflow-hidden"><div class="bg-[#b0955b] h-full rounded-full transition-all duration-1000" id="bar-irr" style="width: 0%"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-end mb-2">
+                                    <span class="text-sm font-bold text-[#717375]"><i class="fa-solid fa-chart-simple mr-2"></i> US Public REITs Average</span>
+                                    <span class="text-xl font-bold text-[#717375] font-mono" id="val-benchmark">...</span>
+                                </div>
+                                <div class="w-full bg-stone-100 rounded-full h-2 overflow-hidden"><div class="bg-[#717375] h-full rounded-full transition-all duration-1000" id="bar-benchmark" style="width: 0%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 pt-6 border-t border-[#b0955b]/20">
+                        <button onclick="window.open('https://realinternational.portal.agorareal.com/#/login?redirectUrl=%2F', '_blank')" class="w-full py-4 bg-[#17433a] hover:bg-[#a3804f] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-3 shadow-md">
+                            <i class="fa-solid fa-shield-halved text-[#b0955b]"></i> Access Agora Client Portal
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-8 flex flex-col items-center">
+                    <h3 class="text-xs font-black text-[#17433a] mb-4 uppercase tracking-widest italic w-full text-left">Current Asset Allocation</h3>
+                    <!-- Chart Container -->
+                    <div class="chart-container w-full" style="height: 220px;"><canvas id="allocationChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Portfolio Deep-Dive -->
+        <div id="section-portfolio" class="view-section space-y-8">
+            <header>
+                <h2 class="text-3xl font-black text-[#0a0a0b] uppercase italic">Asset <span class="text-[#b0955b]">Tracker</span></h2>
+                <p class="text-[#717375] text-sm mt-2 font-medium italic">Monitor core milestones and detailed management updates across your active positions.</p>
+            </header>
+            <div class="grid grid-cols-1 gap-8" id="portfolioList">
+                <div class="flex justify-center py-10"><div class="loader"></div></div>
+            </div>
+        </div>
+
+        <!-- View: Strategy Lab -->
+        <div id="section-strategy" class="view-section space-y-8">
+            <header>
+                <h2 class="text-3xl font-black text-[#0a0a0b] uppercase italic">Strategy <span class="text-[#b0955b]">Lab</span> <span class="text-sm font-bold text-white bg-[#b0955b] px-3 py-1 rounded ml-2 align-middle not-italic">PRO-FORMA</span></h2>
+                <p class="text-[#717375] text-sm mt-2 max-w-2xl font-medium italic underline decoration-[#b0955b]/40 underline-offset-4">
+                    Simulate the deployment of <b id="lab-returned-cap" class="text-[#17433a]">... returned capital</b> into active pipelines.
+                </p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-7 space-y-4" id="strategyList">
+                    <div class="flex justify-center py-10"><div class="loader"></div></div>
+                </div>
+
+                <div class="lg:col-span-5 flex flex-col gap-6">
+                    <div class="bg-[#17433a] rounded-3xl p-8 text-white shadow-lg flex-1 flex flex-col justify-center border-b-4 border-[#b0955b] relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 opacity-5 text-9xl"><i class="fa-solid fa-chart-pie"></i></div>
+                        <div class="space-y-6 relative z-10">
+                            <div>
+                                <p class="text-[#99b2ac] text-[10px] font-black uppercase mb-1 italic tracking-widest flex items-center justify-between">
+                                    <span>Added Monthly Cash Flow</span>
+                                    <span class="bg-[#b0955b] text-white px-2 py-0.5 rounded text-[8px]">LIQUIDITY</span>
+                                </p>
+                                <p class="text-5xl font-black text-white font-mono tracking-tighter" id="res-monthly">+$0</p>
+                            </div>
+                            <div class="pt-4 border-t border-white/10">
+                                <p class="text-[#99b2ac] text-[10px] font-black uppercase mb-1 italic tracking-widest flex items-center justify-between">
+                                    <span>Est. Strategy Profit (Term)</span>
+                                    <span class="bg-[#f3eee4] text-[#17433a] px-2 py-0.5 rounded text-[8px] font-bold">WEALTH CREATION</span>
+                                </p>
+                                <p class="text-5xl font-black text-[#b0955b] font-mono tracking-tighter" id="res-equity">+$0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card p-6 flex flex-col items-center shadow-sm">
+                        <h3 class="text-[10px] font-black uppercase tracking-widest text-[#17433a] mb-4 italic w-full text-left">Pro-forma Allocation Shift</h3>
+                        <div class="chart-container" style="height:160px !important;"><canvas id="proformaChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View: Market Updates -->
+        <div id="section-news" class="view-section space-y-8">
+            <header class="flex flex-col lg:flex-row justify-between items-center gap-6 border-b border-stone-200 pb-6 text-center md:text-left">
+                <div>
+                    <h2 class="text-3xl font-black text-[#0a0a0b] uppercase tracking-tighter italic">Market <span class="text-[#b0955b]">Updates</span></h2>
+                    <p class="text-[10px] text-[#b0955b] font-bold uppercase mt-2"><i class="fa-solid fa-satellite-dish animate-pulse"></i> Hand-picked by Internal Research</p>
+                </div>
+            </header>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="newsGrid">
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // =====================================================================
+        // DATA SOURCES
+        // =====================================================================
+        const URLS = {
+            clients:   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR5F3ynLGeu9YrsfSv-MFIiquQ_dV4HHh5M1oUzvhSNUUsU1zZdZbWPXkoOEkwWhRobIGM7mZgPn25R/pub?gid=0&single=true&output=csv",
+            holdings:  "https://docs.google.com/spreadsheets/d/e/2PACX-1vR5F3ynLGeu9YrsfSv-MFIiquQ_dV4HHh5M1oUzvhSNUUsU1zZdZbWPXkoOEkwWhRobIGM7mZgPn25R/pub?gid=250134730&single=true&output=csv",
+            news:      "https://docs.google.com/spreadsheets/d/e/2PACX-1vR5F3ynLGeu9YrsfSv-MFIiquQ_dV4HHh5M1oUzvhSNUUsU1zZdZbWPXkoOEkwWhRobIGM7mZgPn25R/pub?gid=437562144&single=true&output=csv",
+            strategies:"https://docs.google.com/spreadsheets/d/e/2PACX-1vR5F3ynLGeu9YrsfSv-MFIiquQ_dV4HHh5M1oUzvhSNUUsU1zZdZbWPXkoOEkwWhRobIGM7mZgPn25R/pub?gid=313446437&single=true&output=csv"
+        };
+
+        let CURRENT_CLIENT = null;
+        let CURRENT_HOLDINGS = [];
+        let ACTIVE_STRATEGIES = [];
+        let BASE_ALLOCATIONS = { Residential: 0, Commercial: 0, Industrial: 0, "Private Debt": 0 };
+
+        let allocChartInstance = null;
+        let proChartInstance = null;
+
+        const fmtMoney = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val || 0);
+        const parseNum = (str) => {
+            if(!str) return 0;
+            return parseFloat(str.toString().replace(/[^0-9.-]+/g,"")) || 0;
+        };
+        
+        // 核心科技 - 模糊语义匹配引擎 (完全免疫特殊符号、下划线、大小写问题)
+        const getVal = (obj, possibleKeys) => {
+            if(!obj) return '';
+            const keys = Object.keys(obj);
+            for (let pk of possibleKeys) {
+                const normalizedPk = pk.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '');
+                const match = keys.find(k => k.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '') === normalizedPk);
+                if (match && obj[match] !== undefined && obj[match] !== "") return obj[match];
+            }
+            return '';
+        };
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idFromUrl = urlParams.get('id') || urlParams.get('clientId');
+            if (idFromUrl) {
+                document.getElementById('clientIdInput').value = idFromUrl;
+                authenticateVIP();
+            }
+        };
+
+        async function authenticateVIP() {
+            const btn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('loginBtnText');
+            const loader = document.getElementById('loginLoader');
+            const errorMsg = document.getElementById('loginError');
+            const inputId = document.getElementById('clientIdInput').value.trim().toUpperCase();
+
+            if(!inputId) return;
+
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            errorMsg.classList.add('hidden');
+
+            try {
+                const clientsData = await fetchCSV(URLS.clients);
+                
+                const inputIdNum = (!isNaN(inputId) && inputId !== "") ? Number(inputId).toString() : inputId;
+                
+                const client = clientsData.find(c => {
+                    return Object.values(c).some(val => {
+                        if(!val) return false;
+                        const strVal = String(val).trim().toUpperCase();
+                        return strVal === inputId || strVal === inputIdNum;
+                    });
+                });
+
+                if (!client) {
+                    throw new Error("ID_NOT_FOUND");
+                }
+
+                CURRENT_CLIENT = client;
+                
+                const [holdingsData, rawNewsData, rawStrategiesData] = await Promise.all([
+                    fetchCSV(URLS.holdings),
+                    fetchCSV(URLS.news),
+                    fetchCSV(URLS.strategies)
+                ]);
+
+                CURRENT_HOLDINGS = holdingsData.filter(h => {
+                    return Object.values(h).some(val => {
+                        if(!val) return false;
+                        const strVal = String(val).trim().toUpperCase();
+                        return strVal === inputId || strVal === inputIdNum;
+                    });
+                });
+                
+                buildDashboard(rawNewsData, rawStrategiesData);
+
+                document.getElementById('login-overlay').classList.add('fade-out');
+                document.body.style.overflow = 'auto'; 
+                document.getElementById('main-content').style.opacity = '1';
+                
+            } catch (error) {
+                console.error("Auth Error:", error);
+                if (error.message.startsWith("ID_NOT_FOUND")) {
+                    errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 未找到该 VIP ID，请检查表格中是否存在该客户。';
+                } else {
+                    errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 数据同步失败。请确保Google Sheet已“发布到网络”且格式选为 CSV。';
+                }
+                errorMsg.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+            }
+        }
+
+        async function fetchCSV(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                const csvText = await response.text();
+                
+                if (csvText.trim().startsWith("<!DOCTYPE html>") || csvText.trim().startsWith("<html")) {
+                    throw new Error("HTML_RETURNED");
+                }
+
+                return new Promise((resolve, reject) => {
+                    Papa.parse(csvText, {
+                        header: true,
+                        skipEmptyLines: true,
+                        transformHeader: function(header) { return header ? header.trim() : header; },
+                        transform: function(value) { return typeof value === 'string' ? value.trim() : value; },
+                        complete: function(results) { resolve(results.data); },
+                        error: function(err) { reject(err); }
+                    });
+                });
+            } catch (e) {
+                throw e;
+            }
+        }
+
+        function buildDashboard(rawNewsData, rawStrategiesData) {
+            // ==========================================
+            // 黑科技：Self-Healing 自动路由 (防止新闻表和策略表的链接贴反)
+            // ==========================================
+            let actualNewsData = rawNewsData;
+            let actualStrategiesData = rawStrategiesData;
+            
+            const isNews = (data) => data && data.length > 0 && Object.keys(data[0]).join('').toLowerCase().includes('title');
+            const isStrat = (data) => data && data.length > 0 && Object.keys(data[0]).join('').toLowerCase().includes('offering');
+
+            if (isStrat(rawNewsData) || isNews(rawStrategiesData)) {
+                console.warn("[IR-System] 检测到 News 与 Strategies 链接贴反，已自动执行内存纠偏。");
+                actualNewsData = isNews(rawStrategiesData) ? rawStrategiesData : (isNews(rawNewsData) ? rawNewsData : []);
+                actualStrategiesData = isStrat(rawNewsData) ? rawNewsData : (isStrat(rawStrategiesData) ? rawStrategiesData : []);
+            }
+
+            // 更新 Sidebar
+            const cName = getVal(CURRENT_CLIENT, ['name', 'clientname', '客户姓名', '姓名']) || 'VIP Investor';
+            const cTier = getVal(CURRENT_CLIENT, ['tier', 'level', '级别', 'clienttier']) || 'Tier 1 VIP';
+            
+            document.getElementById('ui-client-name').innerText = cName;
+            document.getElementById('ui-client-tier').innerText = cTier;
+            let initials = cName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            document.getElementById('ui-avatar').innerText = initials;
+
+            // 更新 Overview
+            document.getElementById('val-net-principal').innerText = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['netprincipal', 'principal', '总本金', '净本金'])));
+            document.getElementById('val-cum-basis').innerText = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['cumulativebasis', 'basis', '累计基数', '累计本金'])));
+            
+            const capReturnedStr = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['capitalreturned', 'returned', '已退本金', '返回资本'])));
+            document.getElementById('val-cap-returned').innerText = capReturnedStr;
+            document.getElementById('val-realized-yield').innerText = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['realizedyield', 'yield', '实现收益', '历史收益'])));
+            
+            const irrStr = getVal(CURRENT_CLIENT, ['irr', '内部收益率', 'clientirr']) || '0%';
+            const benchStr = getVal(CURRENT_CLIENT, ['benchmarkirr', 'benchmark', '基准', '基准收益']) || '7.2%';
+            document.getElementById('val-irr').innerText = irrStr.includes('%') ? irrStr : irrStr + '%';
+            document.getElementById('val-benchmark').innerText = benchStr.includes('%') ? benchStr : benchStr + '%';
+            
+            setTimeout(() => {
+                document.getElementById('bar-irr').style.width = Math.min(parseNum(irrStr)*5, 100) + '%';
+                document.getElementById('bar-benchmark').style.width = Math.min(parseNum(benchStr)*5, 100) + '%';
+            }, 500);
+
+            // 渲染模块
+            BASE_ALLOCATIONS = { Residential: 0, Commercial: 0, Industrial: 0, "Private Debt": 0 };
+            renderDynamicPortfolio(CURRENT_HOLDINGS);
+
+            ACTIVE_STRATEGIES = actualStrategiesData;
+            document.getElementById('lab-returned-cap').innerText = capReturnedStr; 
+            renderDynamicStrategies(ACTIVE_STRATEGIES, parseNum(getVal(CURRENT_CLIENT, ['capitalreturned', 'returned', '已退本金', '返回资本'])));
+
+            renderDynamicNews(actualNewsData);
+
+            initCharts();
+            runSim(); 
+            showSection('overview');
+        }
+
+        function renderDynamicPortfolio(holdings) {
+            const list = document.getElementById('portfolioList');
+            if(!holdings || holdings.length === 0) {
+                list.innerHTML = `<div class="bg-white p-10 rounded-[2rem] text-center border border-stone-200"><i class="fa-solid fa-folder-open text-3xl text-stone-300 mb-4"></i><p class="text-sm text-stone-500 italic">No active holdings found for this portfolio.</p></div>`;
+                return;
+            }
+            
+            list.innerHTML = holdings.map((p, idx) => {
+                const typeRaw = getVal(p, ['type', 'assettype', 'class', '资产类别', '类别']) || 'Other';
+                
+                if(BASE_ALLOCATIONS[typeRaw] !== undefined) {
+                    BASE_ALLOCATIONS[typeRaw] += parseNum(getVal(p, ['principal', 'investment', '本金', '投入本金']));
+                }
+
+                // 完美支持您截图中的 VIBE 列情绪控制
+                let vibeClass = getVal(p, ['vibe', '风格', '氛围']);
+                if (!vibeClass) {
+                    // 如果表格中没填 VIBE，按资产类型自动给兜底主题色
+                    if(typeRaw.toLowerCase() === 'residential') vibeClass = "vibe-growth";
+                    else if(typeRaw.toLowerCase() === 'commercial') vibeClass = "vibe-stable";
+                    else if(typeRaw.toLowerCase() === 'industrial') vibeClass = "border-l-4 border-[#17433a]";
+                    else if(typeRaw.toLowerCase() === 'private debt') vibeClass = "border-l-4 border-[#717375]";
+                    else vibeClass = "border-l-4 border-stone-300";
+                }
+
+                // VIBE 智能语义补全：根据氛围自动生成高逼格 IR 总结
+                let autoSummary = "Strategic holding positioned for targeted portfolio returns.";
+                const vStr = vibeClass.toLowerCase();
+                if (vStr.includes('growth')) {
+                    autoSummary = "Optimized for capital appreciation and high-growth yields.";
+                } else if (vStr.includes('stable') || vStr.includes('99b2ac')) {
+                    autoSummary = "Core stabilized asset delivering consistent and defensive cash flow.";
+                } else if (vStr.includes('defensive') || vStr.includes('717375')) {
+                    autoSummary = "Prioritizing principal protection and predictable income generation.";
+                }
+
+                // 里程碑智能抓取雷达
+                let milestones = [];
+                for(let i=1; i<=4; i++) {
+                    // 完美兼容 MILESTONE1 或 Milestone 1 等写法
+                    let mName = getVal(p, [`milestone${i}`, `m${i}name`, `里程碑${i}`, `阶段${i}`]);
+                    let mStatus = getVal(p, [`milestone${i}status`, `m${i}status`, `状态${i}`, `里程碑${i}状态`]);
+                    
+                    if(mName) {
+                        let s = (mStatus || 'pending').toLowerCase().trim();
+                        // 防御机制：如果表格里拼错词，强制重置为 pending，防止界面崩溃
+                        if(!['done', 'active', 'pending'].includes(s)) s = 'pending';
+                        milestones.push({ n: mName, s: s });
+                    }
+                }
+
+                const timelineHtml = milestones.map((m, mIdx) => {
+                    let color = m.s === 'done' ? 'bg-[#b0955b] border-[#b0955b]' : m.s === 'active' ? 'bg-white border-[#b0955b] border-4' : 'bg-stone-200 border-stone-200';
+                    let textColor = m.s === 'active' ? 'text-[#b0955b] font-bold' : m.s === 'done' ? 'text-stone-700 font-bold' : 'text-stone-400';
+                    let line = mIdx < milestones.length - 1 ? `<div class="w-6 md:w-10 h-1 ${m.s === 'done' ? 'bg-[#b0955b]' : 'bg-stone-200'} mt-3"></div>` : '';
+                    return `
+                        <div class="flex flex-col items-center text-center w-14 md:w-20">
+                            <div class="w-6 h-6 rounded-full ${color} z-10 shadow-sm flex items-center justify-center">
+                                ${m.s === 'done' ? '<i class="fa-solid fa-check text-[10px] text-white"></i>' : ''}
+                            </div>
+                            <p class="text-[8px] mt-2 uppercase tracking-tight ${textColor} leading-tight">${m.n}</p>
+                        </div>
+                        ${line}
+                    `;
+                }).join('');
+
+                const dist = parseNum(getVal(p, ['distribution', 'distributions', '分红', '已发分红']));
+                const pName = getVal(p, ['projectname', 'name', '项目', '项目名称']) || 'Asset';
+                const pPrin = parseNum(getVal(p, ['principal', 'investment', '本金', '投入本金']));
+                
+                let pSum = getVal(p, ['summary', '简介', '摘要', '概览']);
+                if (!pSum || pSum.trim() === '') {
+                    pSum = autoSummary; // 如果客户没填 Summary，自动用 VIBE 兜底！
+                }
+                const pDet = getVal(p, ['details', 'update', '详情', '更新', '管理更新']);
+
+                return `
+                <div class="glass-card overflow-hidden group hover:shadow-lg transition-all ${vibeClass} rounded-[2rem] bg-white">
+                    <div class="p-8">
+                        <div class="flex flex-col lg:flex-row gap-8 items-start lg:items-center">
+                            
+                            <div class="lg:w-1/4 border-b lg:border-b-0 lg:border-r border-stone-100 pb-4 lg:pb-0 lg:pr-6 w-full text-left">
+                                <span class="text-[9px] font-black uppercase tracking-[0.2em] text-[#b0955b] bg-[#f3eee4] px-2 py-1 rounded">${typeRaw}</span>
+                                <h4 class="text-xl font-black text-[#0a0a0b] mt-4 mb-2 leading-tight uppercase italic">${pName}</h4>
+                                <p class="text-sm font-mono font-bold text-[#17433a] border-b border-stone-100 pb-2">${fmtMoney(pPrin)}</p>
+                                ${dist > 0 ? `<p class="text-xs font-mono font-bold text-[#b0955b] mt-2">+ ${fmtMoney(dist)} Dist.</p>` : ''}
+                            </div>
+                            
+                            <div class="lg:w-2/4 flex justify-center items-start pt-2 w-full overflow-x-auto no-scrollbar">
+                                <div class="flex items-start justify-center w-full min-w-[300px]">
+                                    ${timelineHtml}
+                                </div>
+                            </div>
+
+                            <div class="lg:w-1/4 w-full flex flex-col justify-center">
+                                <p class="text-xs text-stone-600 font-medium leading-relaxed mb-4 italic">"${pSum}"</p>
+                                
+                                <button onclick="window.toggleProjectDetails(${idx})" class="w-full py-2.5 bg-[#f3eee4] hover:bg-stone-200 border border-[#b0955b]/20 rounded-lg text-xs font-bold text-[#17433a] transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                    View Detailed Update <i id="proj-icon-${idx}" class="fa-solid fa-chevron-down"></i>
+                                </button>
+                                
+                                <a href="https://realinternational.portal.agorareal.com/#/login?redirectUrl=%2F" target="_blank" class="mt-3 text-[9px] font-bold text-[#717375] hover:text-[#b0955b] transition-colors flex items-center justify-center gap-1 uppercase tracking-widest">
+                                    <i class="fa-solid fa-shield-halved"></i> Access Agora (K-1s & Reports)
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div id="proj-details-${idx}" class="hidden mt-6 pt-6 border-t border-stone-100">
+                            <div class="bg-stone-50 border border-stone-200 p-6 rounded-2xl">
+                                <p class="text-[10px] font-black text-[#17433a] uppercase mb-2 tracking-widest"><i class="fa-solid fa-bolt-lightning text-[#b0955b] mr-1"></i> Asset Management Track</p>
+                                <p class="text-sm text-stone-700 leading-relaxed">${pDet || 'Live updates pending...'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderDynamicStrategies(strategies, availableCapital) {
+            const list = document.getElementById('strategyList');
+            
+            const validStrategies = (strategies || []).filter(s => Object.values(s).some(val => val && String(val).trim() !== ''));
+
+            if(!validStrategies || validStrategies.length === 0) {
+                list.innerHTML = `<div class="bg-white p-10 rounded-[2rem] text-center border border-stone-200"><p class="text-sm text-stone-500 italic">No active offerings available in simulation.</p></div>`;
+                return;
+            }
+
+            const defaultSplit = Math.floor(availableCapital / validStrategies.length) || 100000;
+
+            list.innerHTML = validStrategies.map((s, idx) => {
+                const sId = `chk-strat-${idx}`;
+                const valId = `val-strat-${idx}`;
+                
+                // 完美匹配截图中带有下划线的列名 (Tagline, Monthly_Yield_Pct, Total_Profit_Pct)
+                const sName = getVal(s, ['name', 'strategy', 'offering', '项目名称', '项目', '产品', 'title', '标题']) || 'New Offering';
+                const sClass = getVal(s, ['assetclass', 'type', '资产类别', '类别', 'class', '资产', '板块']) || 'Residential';
+                const sIcon = getVal(s, ['icon', '图标', 'iconclass']) || 'fa-solid fa-chart-pie';
+                const sLink = getVal(s, ['link', 'url', '链接', '详情链接', '网页']) || '';
+                const sHighlight = getVal(s, ['tagline', 'highlight', '亮点', '特点', '核心卖点', '高亮']) || '';
+                const sDesc = getVal(s, ['description', '描述', '简介', '详情', '说明']) || '';
+                
+                // 年化数字转换 (获取0.08等，供JS计算用)
+                const mMult = getVal(s, ['monthlyyieldpct', 'monthlymultiplier', '月乘数', 'monthly', '月付', '月化', '月息', '月收益']) || 0;
+                const eMult = getVal(s, ['totalprofitpct', 'equitymultiplier', '权益乘数', 'equity', 'term', '总收益', '预期收益', '期末收益', '乘数']) || 0;
+
+                return `
+                <label class="block group relative">
+                    <input type="checkbox" class="strategy-checkbox hidden" id="${sId}" data-mmult="${mMult}" data-emult="${eMult}" data-asset="${sClass}" onchange="runSim()">
+                    <div class="strategy-inner p-6 bg-white flex flex-col md:flex-row justify-between items-center gap-6 cursor-pointer border border-stone-200 hover:border-[#b0955b]/50">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-[#f3eee4] text-[#17433a] rounded-xl flex items-center justify-center text-xl transition-all shadow-sm"><i class="${sIcon}"></i></div>
+                            <div>
+                                <h4 class="text-base font-black text-[#0a0a0b]">${sName}</h4>
+                                ${sLink ? `<p class="text-[10px] text-[#17433a] font-bold uppercase underline mt-1 mb-1 hover:text-[#b0955b]" onclick="window.open('${sLink}', '_blank'); event.preventDefault();">View Strategy Summary <i class="fa-solid fa-link ml-0.5"></i></p>` : ''}
+                                <p class="text-[11px] text-[#717375] italic leading-tight">Class: ${sClass}. <span class="font-bold text-[#b0955b]">${sHighlight}</span></p>
+                                <p class="text-[10px] text-stone-400 mt-1">${sDesc}</p>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-40 flex-shrink-0">
+                            <input type="number" id="${valId}" value="${defaultSplit}" oninput="document.getElementById('${sId}').checked=true; runSim()" onclick="event.preventDefault();" class="w-full bg-stone-100 p-3 rounded-lg font-mono font-bold text-[#17433a] outline-none border-b-2 border-transparent focus:border-[#b0955b] shadow-inner transition-colors">
+                        </div>
+                    </div>
+                </label>`;
+            }).join('');
+        }
+
+        function renderDynamicNews(news) {
+            const grid = document.getElementById('newsGrid');
+            
+            const validNews = (news || []).filter(n => {
+                const hasContent = Object.values(n).some(val => val && String(val).trim() !== '');
+                const hasTitle = getVal(n, ['title', '标题', 'headline', '新闻标题']);
+                return hasContent && hasTitle;
+            });
+
+            if(!validNews || validNews.length === 0) {
+                 grid.innerHTML = `<div class="col-span-full bg-white p-10 rounded-[2rem] text-center border border-stone-200"><p class="text-sm text-stone-500 italic">No market updates currently available.</p></div>`;
+                 return;
+            }
+
+            grid.innerHTML = validNews.map(n => {
+                const nCat = getVal(n, ['category', 'tag', '分类', '标签', '类别']) || 'Update';
+                const nDate = getVal(n, ['date', '日期', '时间', '发布日期']) || '';
+                const nTitle = getVal(n, ['title', '标题', 'headline', '新闻标题']) || 'Market Update';
+                const nSum = getVal(n, ['summary', 'excerpt', '摘要', '简介', '内容', '正文']) || '';
+                const nLink = getVal(n, ['link', 'url', '链接', '原文链接', '网页']) || '';
+
+                return `
+                <div class="glass-card p-8 space-y-4 group hover:shadow-lg transition-all flex flex-col justify-between border-t-4 border-transparent hover:border-[#b0955b]">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-[9px] font-black uppercase tracking-[0.2em] text-[#b0955b] bg-[#f3eee4] px-2 py-1 rounded">${nCat}</span>
+                            <span class="text-[9px] font-black uppercase text-stone-400 italic">${nDate}</span>
+                        </div>
+                        <h4 class="text-lg font-black text-[#0a0a0b] leading-tight mb-3">${nTitle}</h4>
+                        <p class="text-xs text-[#717375] leading-relaxed font-medium">Excerpt: ${nSum}</p>
+                        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100 mt-4">
+                             <p class="text-[9px] font-black text-[#17433a] uppercase mb-1 tracking-widest">IR Validation</p>
+                             <p class="text-[10px] text-stone-600 italic leading-snug font-semibold">Verified directly from Real International Research.</p>
+                        </div>
+                    </div>
+                    <div class="pt-4 mt-6 border-t border-stone-200">
+                        ${nLink ? `<a href="${nLink}" target="_blank" class="text-[10px] font-black text-[#17433a] uppercase hover:underline flex items-center gap-1 italic tracking-widest">Read Article on RealInt'l <i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+                    </div>
+                </div>`
+            }).join('');
+        }
+
+        function showSection(id) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById('section-' + id);
+            if(target) target.classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
+            const btn = document.getElementById('nav-' + id);
+            if(btn) btn.classList.add('nav-active');
+
+            if(id === 'portfolio') {
+                const banner = document.getElementById('notification-banner');
+                if(banner) banner.style.display = 'none';
+            }
+        }
+
+        window.toggleProjectDetails = function(idx) {
+            const detailDiv = document.getElementById(`proj-details-${idx}`);
+            const icon = document.getElementById(`proj-icon-${idx}`);
+            if(detailDiv.classList.contains('hidden')) {
+                detailDiv.classList.remove('hidden');
+                icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+            } else {
+                detailDiv.classList.add('hidden');
+                icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+            }
+        }
+
+        function runSim() {
+            let monthlyAdd = 0; 
+            let equityAdd = 0; 
+            
+            let simBals = { 
+                Residential: BASE_ALLOCATIONS.Residential || 0, 
+                Commercial: BASE_ALLOCATIONS.Commercial || 0, 
+                Industrial: BASE_ALLOCATIONS.Industrial || 0, 
+                "Private Debt": BASE_ALLOCATIONS["Private Debt"] || 0 
+            }; 
+
+            const checkboxes = document.querySelectorAll('.strategy-checkbox');
+            checkboxes.forEach((chk, idx) => {
+                if(chk.checked) {
+                    const inputVal = parseNum(document.getElementById(`val-strat-${idx}`).value);
+                    const mMult = parseNum(chk.getAttribute('data-mmult')); // e.g., 0.08
+                    const eMult = parseNum(chk.getAttribute('data-emult')); // e.g., 0.24
+                    const assetClass = chk.getAttribute('data-asset');
+
+                    // 数值换算防御：如果表里填了年化0.08，系统自动除以12算出月现金流
+                    monthlyAdd += (inputVal * mMult) / 12; 
+                    equityAdd += inputVal * eMult;
+
+                    let mappedClass = Object.keys(simBals).find(k => k.toLowerCase() === assetClass.toLowerCase());
+                    if(mappedClass) {
+                        simBals[mappedClass] += inputVal;
+                    }
+                }
+            });
+
+            document.getElementById('res-monthly').innerText = '+$' + Math.round(monthlyAdd).toLocaleString();
+            document.getElementById('res-equity').innerText = '+$' + Math.round(equityAdd).toLocaleString();
+
+            if(proChartInstance) {
+                const dataArray = [simBals.Residential, simBals.Commercial, simBals.Industrial, simBals["Private Debt"]];
+                proChartInstance.data.datasets[0].data = dataArray;
+                proChartInstance.update();
+            }
+        }
+
+        function initCharts() {
+            const chartLabels = ['Residential', 'Commercial', 'Industrial', 'Private Debt'];
+            const chartData = [
+                BASE_ALLOCATIONS.Residential || 0, 
+                BASE_ALLOCATIONS.Commercial || 0, 
+                BASE_ALLOCATIONS.Industrial || 0, 
+                BASE_ALLOCATIONS["Private Debt"] || 0
+            ];
+            const chartColors = ['#17433a', '#b0955b', '#99b2ac', '#717375'];
+
+            const allocCtx = document.getElementById('allocationChart')?.getContext('2d');
+            if(allocCtx) {
+                if(allocChartInstance) allocChartInstance.destroy(); 
+                allocChartInstance = new Chart(allocCtx, {
+                    type: 'doughnut', data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: chartColors, borderWidth: 0, hoverOffset: 10 }] },
+                    options: { maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'right', labels: { usePointStyle: true, padding: 15, font: { size: 10, weight: 'bold' } } } } }
+                });
+            }
+            
+            const proCtx = document.getElementById('proformaChart')?.getContext('2d');
+            if(proCtx) {
+                if(proChartInstance) proChartInstance.destroy();
+                proChartInstance = new Chart(proCtx, {
+                    type: 'pie', data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: chartColors, borderWidth: 2, borderColor: '#ffffff' }] },
+                    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
