@@ -111,43 +111,41 @@
 
 <body class="flex flex-col md:flex-row h-screen">
 
-    <!-- Login Overlay -->
-    <div id="login-overlay" class="fixed inset-0 bg-[#f3eee4] flex flex-col items-center justify-center p-6 z-50">
+    <!-- VIP Login Overlay (浅色系高雅改版 + 霸气大Logo) -->
+    <div id="login-overlay" class="fixed inset-0 z-50 bg-[#f3eee4] flex flex-col items-center justify-center p-6">
         <div class="absolute inset-0 opacity-40" style="background-image: url('https://www.transparenttextures.com/patterns/stardust.png');"></div>
-        <div class="bg-white/90 backdrop-blur-md border border-[#b0955b]/30 p-10 md:p-14 rounded-3xl shadow-2xl w-full max-w-md text-center relative z-10">
+        <div class="bg-white/90 backdrop-blur-md border border-[#b0955b]/30 p-10 md:p-14 rounded-3xl shadow-2xl w-full max-w-md relative z-10 text-center">
             
-            <!-- 放大版 Logo：高度从 h-16 提升到了 h-24 (放大50%) -->
-            <img id="login-logo" src="./logo.png" alt="Real International Logo" class="h-24 w-auto object-contain mx-auto mb-8 drop-shadow-sm" onerror="this.style.display='none'; document.getElementById('login-logo-fallback').classList.remove('hidden');" />
-            <!-- 备用占位符也同步放大到 w-24 h-24，字体放大到 text-5xl -->
-            <div id="login-logo-fallback" class="hidden w-24 h-24 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-5xl bg-[#17433a] rounded-xl mx-auto mb-8 shadow-lg">R</div>
+            <!-- 替换后的专属 Logo，高度放大到 h-28，完美适配浅色背景 -->
+            <img src="./logo.png" alt="Real International Logo" class="h-28 w-auto object-contain mx-auto mb-8 drop-shadow-sm" onerror="this.onerror=null; this.outerHTML='<div class=\\'w-28 h-28 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-5xl bg-[#17433a] rounded-xl mx-auto mb-8 shadow-lg\\'>R</div>';" />
 
-            <h1 class="text-3xl font-black text-[#17433a] uppercase italic mb-2 tracking-tighter">Private <span class="text-[#b0955b]">Access</span></h1>
+            <h1 class="text-3xl font-black text-[#17433a] uppercase tracking-tighter italic mb-2">Private <span class="text-[#b0955b]">Access</span></h1>
             
-            <!-- 精准修改：替换为你要求的全英文专业陈述 -->
+            <!-- 机构级描述文案 -->
             <p class="text-[#717375] text-xs font-medium mb-8 leading-relaxed">Proprietary investment terminal for Real International investors. Features automated portfolio tracking, asset management milestones, and sophisticated pro-forma modeling.</p>
             
             <div class="space-y-4 text-left">
-                <!-- 精准修改：更改为 Investor Access ID，去除了 placeholder -->
-                <label class="block text-[10px] font-black uppercase text-[#b0955b] tracking-widest mb-2">Investor Access ID</label>
-                <input type="text" id="clientIdInput" class="w-full bg-stone-50 border border-stone-200 text-[#17433a] p-4 rounded-xl focus:outline-none focus:border-[#b0955b] focus:ring-1 focus:ring-[#b0955b] transition-all font-mono" onkeypress="if(event.key === 'Enter') authenticate()">
-                
-                <button id="loginBtn" onclick="authenticate()" class="w-full bg-[#17433a] text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-[#b0955b] transition-all flex items-center justify-center gap-2 shadow-lg">
-                    <span id="loginBtnText">Verify Identity</span>
+                <div>
+                    <!-- Client 改为了 Investor -->
+                    <label class="block text-[10px] font-black uppercase text-[#b0955b] tracking-widest mb-2">Investor Access ID</label>
+                    
+                    <!-- 去除占位符，调整配色适配浅色主题 -->
+                    <input type="text" id="clientIdInput" class="w-full bg-stone-50 border border-stone-200 text-[#17433a] p-4 rounded-xl focus:outline-none focus:border-[#b0955b] focus:ring-1 focus:ring-[#b0955b] transition-all font-mono" onkeypress="if(event.key === 'Enter') authenticateVIP()">
+                </div>
+                <button id="loginBtn" onclick="authenticateVIP()" class="w-full bg-[#17433a] text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-[#b0955b] transition-all flex items-center justify-center gap-2 shadow-lg">
+                    <span id="loginBtnText">Access Dashboard</span>
                     <div id="loginLoader" class="loader hidden"></div>
                 </button>
             </div>
-            <p id="loginError" class="text-red-500 text-[10px] mt-4 hidden font-bold text-center">
-                <i class="fa-solid fa-triangle-exclamation"></i> Security verification failed. <br>Please check ID or contact administrator.
-            </p>
+            <p id="loginError" class="text-red-500 text-xs mt-4 hidden font-medium"><i class="fa-solid fa-triangle-exclamation"></i> Invalid ID or Data Source Sync Failed.</p>
         </div>
     </div>
 
-    <!-- Sidebar -->
+    <!-- Sidebar Navigation -->
     <aside class="w-full md:w-80 bg-white border-r border-stone-200 flex flex-col z-30 shadow-2xl overflow-y-auto hidden md:flex" id="sidebar">
         <div class="p-8">
             <div class="mb-10 cursor-pointer" onclick="window.open('https://realinternational.com/', '_blank')">
-                <!-- 修复了 flex 引号问题，使用安全的 JS 反引号包围 HTML -->
-                <img id="company-logo" src="./logo.png" alt="Real International Logo" class="w-56 h-auto object-contain object-left" onerror="this.onerror=null; this.outerHTML=`<div class='flex items-center gap-3'><div class='w-12 h-12 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-2xl bg-[#17433a] rounded-lg shadow-sm'>R</div><div><h1 class='font-extrabold text-[#17433a] text-2xl leading-none tracking-tight italic'>REAL <span class='text-[#b0955b]'>INT\'L</span></h1><p class='text-[#717375] text-[0.6rem] font-bold uppercase tracking-[0.3em] mt-1'>Capital Advisory</p></div></div>`;" />
+                <img id="company-logo" src="./logo.png" alt="Real International Logo" class="w-56 h-auto object-contain object-left" onerror="this.onerror=null; this.outerHTML='<div class=\\'flex items-center gap-3\\'><div class=\\'w-12 h-12 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-2xl bg-[#17433a] rounded-lg shadow-sm\\'>R</div><div><h1 class=\\'font-extrabold text-[#17433a] text-2xl leading-none tracking-tight italic\\'>REAL <span class=\\'text-[#b0955b]\\'>INT\\'L</span></h1><p class=\\'text-[#717375] text-[0.6rem] font-bold uppercase tracking-[0.3em] mt-1\\'>Capital Advisory</p></div></div>';" />
             </div>
 
             <nav class="space-y-2">
@@ -183,7 +181,7 @@
     <!-- Mobile Header -->
     <header class="md:hidden bg-white border-b border-stone-200 p-4 flex justify-between items-center z-20">
         <div class='flex items-center gap-2 cursor-pointer' onclick="window.open('https://realinternational.com/', '_blank')">
-            <img id="mobile-logo" src="./logo.png" alt="Real International Logo" class="h-8 w-auto object-contain" onerror="this.onerror=null; this.outerHTML=`<div class='flex items-center gap-2'><div class='w-8 h-8 border border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-sm bg-[#17433a] rounded-md'>R</div><h1 class='font-extrabold text-[#17433a] text-lg leading-none tracking-tight italic'>REAL <span class='text-[#b0955b]'>INT\'L</span></h1></div>`;" />
+            <img id="mobile-logo" src="./logo.png" alt="Real International Logo" class="h-8 w-auto object-contain" onerror="this.onerror=null; this.outerHTML='<div class=\\'flex items-center gap-2\\'><div class=\\'w-8 h-8 border border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-sm bg-[#17433a] rounded-md\\'>R</div><h1 class=\\'font-extrabold text-[#17433a] text-lg leading-none tracking-tight italic\\'>REAL <span class=\\'text-[#b0955b]\\'>INT\\'L</span></h1></div>';" />
         </div>
         <button onclick="document.getElementById('sidebar').classList.toggle('hidden')" class="text-[#17433a] text-xl p-2"><i class="fa-solid fa-bars"></i></button>
     </header>
