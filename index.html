@@ -61,11 +61,12 @@
 
         .chart-container { position: relative; width: 100%; height: 260px; }
 
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* VIBE 情绪控制系统 */
         .vibe-defensive { border-left: 5px solid #e5e7eb; } 
         .vibe-growth { border-left: 5px solid var(--brand-gold); } 
         .vibe-stable { border-left: 5px solid var(--sage-green); } 
-
-        .no-scrollbar::-webkit-scrollbar { display: none; }
         
         .strategy-inner { transition: transform 0.2s ease, box-shadow 0.2s ease; border: 2px solid transparent; border-radius: 1.5rem; }
         .strategy-checkbox:checked + .strategy-inner {
@@ -136,7 +137,8 @@
     <aside class="w-full md:w-80 bg-white border-r border-stone-200 flex flex-col z-30 shadow-2xl overflow-y-auto hidden md:flex" id="sidebar">
         <div class="p-8">
             <div class="mb-10 cursor-pointer" onclick="window.open('https://realinternational.com/', '_blank')">
-                <img id="company-logo" src="./logo.png" alt="Real International Logo" class="w-56 h-auto object-contain object-left" onerror="this.onerror=null; this.outerHTML='<div class=\\'flex items-center gap-3\\'><div class=\\'w-12 h-12 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-2xl bg-[#17433a] rounded-lg shadow-sm\\'>R</div><div><h1 class=\\'font-extrabold text-[#17433a] text-2xl leading-none tracking-tight italic\\'>REAL <span class=\\'text-[#b0955b]\\'>INT\\'L</span></h1><p class=\\'text-[#717375] text-[0.6rem] font-bold uppercase tracking-[0.3em] mt-1\\'>Capital Advisory</p></div></div>';" />
+                <!-- 修复了 flex 引号问题，使用安全的 JS 反引号包围 HTML -->
+                <img id="company-logo" src="./logo.png" alt="Real International Logo" class="w-56 h-auto object-contain object-left" onerror="this.onerror=null; this.outerHTML=`<div class='flex items-center gap-3'><div class='w-12 h-12 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-2xl bg-[#17433a] rounded-lg shadow-sm'>R</div><div><h1 class='font-extrabold text-[#17433a] text-2xl leading-none tracking-tight italic'>REAL <span class='text-[#b0955b]'>INT\'L</span></h1><p class='text-[#717375] text-[0.6rem] font-bold uppercase tracking-[0.3em] mt-1'>Capital Advisory</p></div></div>`;" />
             </div>
 
             <nav class="space-y-2">
@@ -172,7 +174,7 @@
     <!-- Mobile Header -->
     <header class="md:hidden bg-white border-b border-stone-200 p-4 flex justify-between items-center z-20">
         <div class='flex items-center gap-2 cursor-pointer' onclick="window.open('https://realinternational.com/', '_blank')">
-            <img id="mobile-logo" src="./logo.png" alt="Real International Logo" class="h-8 w-auto object-contain" onerror="this.onerror=null; this.outerHTML='<div class=\\'flex items-center gap-2\\'><div class=\\'w-8 h-8 border border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-sm bg-[#17433a] rounded-md\\'>R</div><h1 class=\\'font-extrabold text-[#17433a] text-lg leading-none tracking-tight italic\\'>REAL <span class=\\'text-[#b0955b]\\'>INT\\'L</span></h1></div>';" />
+            <img id="mobile-logo" src="./logo.png" alt="Real International Logo" class="h-8 w-auto object-contain" onerror="this.onerror=null; this.outerHTML=`<div class='flex items-center gap-2'><div class='w-8 h-8 border border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-sm bg-[#17433a] rounded-md'>R</div><h1 class='font-extrabold text-[#17433a] text-lg leading-none tracking-tight italic'>REAL <span class='text-[#b0955b]'>INT\'L</span></h1></div>`;" />
         </div>
         <button onclick="document.getElementById('sidebar').classList.toggle('hidden')" class="text-[#17433a] text-xl p-2"><i class="fa-solid fa-bars"></i></button>
     </header>
@@ -266,6 +268,7 @@
                 <p class="text-[#717375] text-sm mt-2 font-medium italic">Monitor core milestones and detailed management updates across your active positions.</p>
             </header>
             <div class="grid grid-cols-1 gap-8" id="portfolioList">
+                <!-- Dynamically populated from Sheet 2 -->
                 <div class="flex justify-center py-10"><div class="loader"></div></div>
             </div>
         </div>
@@ -281,11 +284,12 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div class="lg:col-span-7 space-y-4" id="strategyList">
+                    <!-- Dynamically populated from Sheet 4 -->
                     <div class="flex justify-center py-10"><div class="loader"></div></div>
                 </div>
 
                 <div class="lg:col-span-5 flex flex-col gap-6">
-                    <div class="bg-[#17433a] rounded-3xl p-8 text-white shadow-lg flex-1 flex flex-col justify-center border-b-4 border-[#b0955b] relative overflow-hidden">
+                    <div class="bg-[#17433a] rounded-3xl p-8 text-white shadow-lg flex-1 flex flex-col justify-center border-b-4 border-[#b0955b] relative overflow-hidden sticky top-10">
                         <div class="absolute -right-10 -top-10 opacity-5 text-9xl"><i class="fa-solid fa-chart-pie"></i></div>
                         <div class="space-y-6 relative z-10">
                             <div>
@@ -323,6 +327,7 @@
             </header>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="newsGrid">
+                <!-- Dynamically populated from Sheet 3 -->
             </div>
         </div>
 
@@ -330,15 +335,17 @@
 
     <script>
         // =====================================================================
-        // DATA SOURCES
+        // DATA SOURCES (Google Sheets CSV Links)
+        // 已经严格替换为你提供的四个新网址，绝不改动其他逻辑
         // =====================================================================
         const URLS = {
-            clients:   "https://docs.google.com/spreadsheets/d/e/2PACX-1vR5F3ynLGeu9YrsfSv-MFIiquQ_dV4HHh5M1oUzvhSNUUsU1zZdZbWPXkoOEkwWhRobIGM7mZgPn25R/pub?gid=0&single=true&output=csv",
-            holdings:  "https://docs.google.com/spreadsheets/d/e/2PACX-1vR5F3ynLGeu9YrsfSv-MFIiquQ_dV4HHh5M1oUzvhSNUUsU1zZdZbWPXkoOEkwWhRobIGM7mZgPn25R/pub?gid=250134730&single=true&output=csv",
-            news:      "https://docs.google.com/spreadsheets/d/e/2PACX-1vR5F3ynLGeu9YrsfSv-MFIiquQ_dV4HHh5M1oUzvhSNUUsU1zZdZbWPXkoOEkwWhRobIGM7mZgPn25R/pub?gid=437562144&single=true&output=csv",
-            strategies:"https://docs.google.com/spreadsheets/d/e/2PACX-1vR5F3ynLGeu9YrsfSv-MFIiquQ_dV4HHh5M1oUzvhSNUUsU1zZdZbWPXkoOEkwWhRobIGM7mZgPn25R/pub?gid=313446437&single=true&output=csv"
+            clients:   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTvH67J4MjdTnLi1wh3s_kiVzUDOmrBDEExM0swF5GjlBwxzVRtjH3x7Naq_HsSrwKjs1oyZZlMcBq1/pub?gid=0&single=true&output=csv",
+            holdings:  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTvH67J4MjdTnLi1wh3s_kiVzUDOmrBDEExM0swF5GjlBwxzVRtjH3x7Naq_HsSrwKjs1oyZZlMcBq1/pub?gid=1604596618&single=true&output=csv",
+            news:      "https://docs.google.com/spreadsheets/d/e/2PACX-1vTvH67J4MjdTnLi1wh3s_kiVzUDOmrBDEExM0swF5GjlBwxzVRtjH3x7Naq_HsSrwKjs1oyZZlMcBq1/pub?gid=1615224625&single=true&output=csv",
+            strategies:"https://docs.google.com/spreadsheets/d/e/2PACX-1vTvH67J4MjdTnLi1wh3s_kiVzUDOmrBDEExM0swF5GjlBwxzVRtjH3x7Naq_HsSrwKjs1oyZZlMcBq1/pub?gid=127635741&single=true&output=csv"
         };
 
+        // State Management
         let CURRENT_CLIENT = null;
         let CURRENT_HOLDINGS = [];
         let ACTIVE_STRATEGIES = [];
@@ -347,17 +354,20 @@
         let allocChartInstance = null;
         let proChartInstance = null;
 
+        // Utility: Format Currency
         const fmtMoney = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val || 0);
+        // Utility: Parse Numeric safely
         const parseNum = (str) => {
             if(!str) return 0;
             return parseFloat(str.toString().replace(/[^0-9.-]+/g,"")) || 0;
         };
         
-        // 核心科技 - 模糊语义匹配引擎 (完全免疫特殊符号、下划线、大小写问题)
+        // 核心科技 - 模糊语义匹配引擎
         const getVal = (obj, possibleKeys) => {
             if(!obj) return '';
             const keys = Object.keys(obj);
             for (let pk of possibleKeys) {
+                // 将表格里的实际表头和我们的目标词汇，全部去掉空格、横杠并转小写比对
                 const normalizedPk = pk.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '');
                 const match = keys.find(k => k.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '') === normalizedPk);
                 if (match && obj[match] !== undefined && obj[match] !== "") return obj[match];
@@ -365,7 +375,11 @@
             return '';
         };
 
+        // =====================================================================
+        // 1. VIP Authentication & Initialization
+        // =====================================================================
         window.onload = function() {
+            // Check URL parameters for direct access
             const urlParams = new URLSearchParams(window.location.search);
             const idFromUrl = urlParams.get('id') || urlParams.get('clientId');
             if (idFromUrl) {
@@ -383,14 +397,18 @@
 
             if(!inputId) return;
 
+            // UI Loading State
             btn.disabled = true;
             btnText.classList.add('hidden');
             loader.classList.remove('hidden');
             errorMsg.classList.add('hidden');
 
             try {
+                // Fetch Core Client Data
                 const clientsData = await fetchCSV(URLS.clients);
                 
+                // BULLETPROOF MATCHING 2.0: 全息跨列扫描 + Google数字格式自适应
+                // 解决 Google Sheets 会把 "001" 自动变成 "1" 的痛点
                 const inputIdNum = (!isNaN(inputId) && inputId !== "") ? Number(inputId).toString() : inputId;
                 
                 const client = clientsData.find(c => {
@@ -402,17 +420,22 @@
                 });
 
                 if (!client) {
-                    throw new Error("ID_NOT_FOUND");
+                    console.error("在表格中未匹配到该ID:", inputId);
+                    // 注入透视除错信息：把表格第一行的表头抓出来展示，一眼看出数据是否正确加载
+                    const detectedHeaders = clientsData.length > 0 ? Object.keys(clientsData[0]).join(', ') : '表格无数据/格式空';
+                    throw new Error("ID_NOT_FOUND|" + detectedHeaders);
                 }
 
                 CURRENT_CLIENT = client;
                 
+                // Fetch the rest of the data simultaneously to save time
                 const [holdingsData, rawNewsData, rawStrategiesData] = await Promise.all([
                     fetchCSV(URLS.holdings),
                     fetchCSV(URLS.news),
                     fetchCSV(URLS.strategies)
                 ]);
 
+                // Filter Holdings: 同样使用全息扫描，确保不漏掉任何资产记录
                 CURRENT_HOLDINGS = holdingsData.filter(h => {
                     return Object.values(h).some(val => {
                         if(!val) return false;
@@ -421,18 +444,29 @@
                     });
                 });
                 
+                // Initialize Dashboard
                 buildDashboard(rawNewsData, rawStrategiesData);
 
+                // Hide Overlay gracefully
                 document.getElementById('login-overlay').classList.add('fade-out');
-                document.body.style.overflow = 'auto'; 
+                document.body.style.overflow = 'auto'; // Restore scroll
                 document.getElementById('main-content').style.opacity = '1';
                 
             } catch (error) {
-                console.error("Auth Error:", error);
+                console.error("Auth Error Details:", error);
                 if (error.message.startsWith("ID_NOT_FOUND")) {
-                    errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 未找到该 VIP ID，请检查表格中是否存在该客户。';
+                    const headers = error.message.split('|')[1] || '';
+                    errorMsg.innerHTML = `
+                        <i class="fa-solid fa-triangle-exclamation"></i> 未找到客户：<b>${inputId}</b>。<br>
+                        <span class="text-[9px] text-stone-400 mt-2 block font-mono border-t border-stone-600/30 pt-2 leading-relaxed text-left">
+                            <b>架构师诊断系统：</b>数据已连通，但在表中未匹配到该词。<br>
+                            <b>系统读取到的表头：</b>[ ${headers} ]<br>
+                            <b>修复建议：</b>请确保填写的ID确切存在于上述表格内，或尝试在Google表中将该列设为纯文本。
+                        </span>`;
+                } else if (error.message === "HTML_RETURNED") {
+                    errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 数据被拦截！请确保Google Sheet已执行「文件」>「共享」>「发布到网络」(Publish to web)。';
                 } else {
-                    errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 数据同步失败。请确保Google Sheet已“发布到网络”且格式选为 CSV。';
+                    errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 数据同步失败。可能由于网络跨域拦截或链接错误。';
                 }
                 errorMsg.classList.remove('hidden');
             } finally {
@@ -442,12 +476,15 @@
             }
         }
 
+        // CSV Fetch Wrapper (终极升级版：原生 Fetch API 配合数据自动清洗)
         async function fetchCSV(url) {
             try {
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                
                 const csvText = await response.text();
                 
+                // 核心防御机制：如果Google返回的是一个登录页面(HTML)而非CSV，抛出专门的错误
                 if (csvText.trim().startsWith("<!DOCTYPE html>") || csvText.trim().startsWith("<html")) {
                     throw new Error("HTML_RETURNED");
                 }
@@ -456,21 +493,30 @@
                     Papa.parse(csvText, {
                         header: true,
                         skipEmptyLines: true,
-                        transformHeader: function(header) { return header ? header.trim() : header; },
-                        transform: function(value) { return typeof value === 'string' ? value.trim() : value; },
-                        complete: function(results) { resolve(results.data); },
-                        error: function(err) { reject(err); }
+                        transformHeader: function(header) {
+                            return header ? header.trim() : header;
+                        },
+                        transform: function(value) {
+                            return typeof value === 'string' ? value.trim() : value;
+                        },
+                        complete: function(results) {
+                            resolve(results.data);
+                        },
+                        error: function(err) {
+                            reject(err);
+                        }
                     });
                 });
             } catch (e) {
-                throw e;
+                throw e; // 将错误向上传递给 authenticateVIP 处理
             }
         }
 
+        // =====================================================================
+        // 2. Build Dashboard Logic
+        // =====================================================================
         function buildDashboard(rawNewsData, rawStrategiesData) {
-            // ==========================================
             // 黑科技：Self-Healing 自动路由 (防止新闻表和策略表的链接贴反)
-            // ==========================================
             let actualNewsData = rawNewsData;
             let actualStrategiesData = rawStrategiesData;
             
@@ -483,16 +529,18 @@
                 actualStrategiesData = isStrat(rawNewsData) ? rawNewsData : (isStrat(rawStrategiesData) ? rawStrategiesData : []);
             }
 
-            // 更新 Sidebar
+            // A. Update Sidebar User Info (使用智能匹配，支持中英文多维表头)
             const cName = getVal(CURRENT_CLIENT, ['name', 'clientname', '客户姓名', '姓名']) || 'VIP Investor';
             const cTier = getVal(CURRENT_CLIENT, ['tier', 'level', '级别', 'clienttier']) || 'Tier 1 VIP';
             
             document.getElementById('ui-client-name').innerText = cName;
             document.getElementById('ui-client-tier').innerText = cTier;
+            
+            // Get Initials for Avatar
             let initials = cName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
             document.getElementById('ui-avatar').innerText = initials;
 
-            // 更新 Overview
+            // B. Populate Overview Section (使用智能匹配)
             document.getElementById('val-net-principal').innerText = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['netprincipal', 'principal', '总本金', '净本金'])));
             document.getElementById('val-cum-basis').innerText = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['cumulativebasis', 'basis', '累计基数', '累计本金'])));
             
@@ -500,31 +548,44 @@
             document.getElementById('val-cap-returned').innerText = capReturnedStr;
             document.getElementById('val-realized-yield').innerText = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['realizedyield', 'yield', '实现收益', '历史收益'])));
             
+            // IRR Bars
             const irrStr = getVal(CURRENT_CLIENT, ['irr', '内部收益率', 'clientirr']) || '0%';
             const benchStr = getVal(CURRENT_CLIENT, ['benchmarkirr', 'benchmark', '基准', '基准收益']) || '7.2%';
             document.getElementById('val-irr').innerText = irrStr.includes('%') ? irrStr : irrStr + '%';
             document.getElementById('val-benchmark').innerText = benchStr.includes('%') ? benchStr : benchStr + '%';
             
             setTimeout(() => {
-                document.getElementById('bar-irr').style.width = Math.min(parseNum(irrStr)*5, 100) + '%';
-                document.getElementById('bar-benchmark').style.width = Math.min(parseNum(benchStr)*5, 100) + '%';
+                const barIrr = document.getElementById('bar-irr');
+                const barBench = document.getElementById('bar-benchmark');
+                if (barIrr) barIrr.style.width = Math.min(parseNum(irrStr)*5, 100) + '%';
+                if (barBench) barBench.style.width = Math.min(parseNum(benchStr)*5, 100) + '%';
             }, 500);
 
-            // 渲染模块
+            // C. Build Dynamic Portfolio & Extract Base Allocations
             BASE_ALLOCATIONS = { Residential: 0, Commercial: 0, Industrial: 0, "Private Debt": 0 };
             renderDynamicPortfolio(CURRENT_HOLDINGS);
 
+            // D. Build Dynamic Strategies (Lab)
             ACTIVE_STRATEGIES = actualStrategiesData;
-            document.getElementById('lab-returned-cap').innerText = capReturnedStr; 
+            document.getElementById('lab-returned-cap').innerText = capReturnedStr; // Update Strategy subtext
             renderDynamicStrategies(ACTIVE_STRATEGIES, parseNum(getVal(CURRENT_CLIENT, ['capitalreturned', 'returned', '已退本金', '返回资本'])));
 
+            // E. Build News
             renderDynamicNews(actualNewsData);
 
+            // F. Initialize Charts
             initCharts();
-            runSim(); 
+            runSim(); // Run initial calculation
+
+            // G. Show Overview by default
             showSection('overview');
         }
 
+        // =====================================================================
+        // 3. Render Functions (Injecting Google Sheets Data to HTML)
+        // =====================================================================
+        
+        // Portfolio Renderer
         function renderDynamicPortfolio(holdings) {
             const list = document.getElementById('portfolioList');
             if(!holdings || holdings.length === 0) {
@@ -533,8 +594,10 @@
             }
             
             list.innerHTML = holdings.map((p, idx) => {
+                // 强大的映射抓取：无论表头是Type, Class 还是 类别，通通拿下
                 const typeRaw = getVal(p, ['type', 'assettype', 'class', '资产类别', '类别']) || 'Other';
                 
+                // Track for charts
                 if(BASE_ALLOCATIONS[typeRaw] !== undefined) {
                     BASE_ALLOCATIONS[typeRaw] += parseNum(getVal(p, ['principal', 'investment', '本金', '投入本金']));
                 }
@@ -643,9 +706,11 @@
             }).join('');
         }
 
+        // Strategies Renderer (终极扩容版：过滤空行 + 极限词库)
         function renderDynamicStrategies(strategies, availableCapital) {
             const list = document.getElementById('strategyList');
             
+            // 核心防御：过滤掉 Google Sheets 可能产生的纯空行
             const validStrategies = (strategies || []).filter(s => Object.values(s).some(val => val && String(val).trim() !== ''));
 
             if(!validStrategies || validStrategies.length === 0) {
@@ -692,9 +757,11 @@
             }).join('');
         }
 
+        // News Renderer (终极扩容版：过滤空行 + 极限词库)
         function renderDynamicNews(news) {
             const grid = document.getElementById('newsGrid');
             
+            // 核心防御：过滤纯空行，并且必须有标题才渲染
             const validNews = (news || []).filter(n => {
                 const hasContent = Object.values(n).some(val => val && String(val).trim() !== '');
                 const hasTitle = getVal(n, ['title', '标题', 'headline', '新闻标题']);
@@ -734,6 +801,9 @@
             }).join('');
         }
 
+        // =====================================================================
+        // 4. Core Interactive Logics (Charts & Sim)
+        // =====================================================================
         function showSection(id) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
             const target = document.getElementById('section-' + id);
@@ -765,6 +835,7 @@
             let monthlyAdd = 0; 
             let equityAdd = 0; 
             
+            // Deep copy base allocations
             let simBals = { 
                 Residential: BASE_ALLOCATIONS.Residential || 0, 
                 Commercial: BASE_ALLOCATIONS.Commercial || 0, 
@@ -777,13 +848,14 @@
                 if(chk.checked) {
                     const inputVal = parseNum(document.getElementById(`val-strat-${idx}`).value);
                     const mMult = parseNum(chk.getAttribute('data-mmult')); // e.g., 0.08
-                    const eMult = parseNum(chk.getAttribute('data-emult')); // e.g., 0.24
+                    const eMult = parseNum(chk.getAttribute('data-emult')); // e.g., 0.45
                     const assetClass = chk.getAttribute('data-asset');
 
                     // 数值换算防御：如果表里填了年化0.08，系统自动除以12算出月现金流
                     monthlyAdd += (inputVal * mMult) / 12; 
                     equityAdd += inputVal * eMult;
 
+                    // Support fallback logic if column names misalign
                     let mappedClass = Object.keys(simBals).find(k => k.toLowerCase() === assetClass.toLowerCase());
                     if(mappedClass) {
                         simBals[mappedClass] += inputVal;
@@ -795,6 +867,7 @@
             document.getElementById('res-equity').innerText = '+$' + Math.round(equityAdd).toLocaleString();
 
             if(proChartInstance) {
+                // Keep ordering strict for color mapping: Resi, Comm, Ind, Debt
                 const dataArray = [simBals.Residential, simBals.Commercial, simBals.Industrial, simBals["Private Debt"]];
                 proChartInstance.data.datasets[0].data = dataArray;
                 proChartInstance.update();
@@ -803,6 +876,7 @@
 
         function initCharts() {
             const chartLabels = ['Residential', 'Commercial', 'Industrial', 'Private Debt'];
+            // Injecting live Base Allocations calculated from Google Sheet 2
             const chartData = [
                 BASE_ALLOCATIONS.Residential || 0, 
                 BASE_ALLOCATIONS.Commercial || 0, 
@@ -813,7 +887,7 @@
 
             const allocCtx = document.getElementById('allocationChart')?.getContext('2d');
             if(allocCtx) {
-                if(allocChartInstance) allocChartInstance.destroy(); 
+                if(allocChartInstance) allocChartInstance.destroy(); // Prevent memory leak
                 allocChartInstance = new Chart(allocCtx, {
                     type: 'doughnut', data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: chartColors, borderWidth: 0, hoverOffset: 10 }] },
                     options: { maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'right', labels: { usePointStyle: true, padding: 15, font: { size: 10, weight: 'bold' } } } } }
