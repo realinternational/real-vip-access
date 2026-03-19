@@ -115,8 +115,9 @@
     <div id="login-overlay" class="fixed inset-0 z-50 bg-[#f3eee4] flex flex-col items-center justify-center p-6">
         <div class="bg-white/90 backdrop-blur-md border border-[#b0955b]/30 p-10 md:p-14 rounded-3xl shadow-2xl w-full max-w-md relative z-10 text-center">
             
-            <!-- 替换后的专属 Logo，高度放大到 h-28，完美适配浅色背景 -->
-            <img src="./logo.png" alt="Real International Logo" class="h-28 w-auto object-contain mx-auto mb-8 drop-shadow-sm" onerror="this.onerror=null; this.outerHTML='<div class=\\'w-28 h-28 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-5xl bg-[#17433a] rounded-xl mx-auto mb-8 shadow-lg\\'>R</div>';" />
+            <!-- 替换后的专属 Logo，高度放大到 h-28，完美适配浅色背景。修复了转义冲突。 -->
+            <img id="login-logo" src="./logo.png" alt="Real International Logo" class="h-28 w-auto object-contain mx-auto mb-8 drop-shadow-sm" onerror="this.style.display='none'; document.getElementById('login-logo-fallback').classList.remove('hidden');" />
+            <div id="login-logo-fallback" class="hidden w-28 h-28 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-5xl bg-[#17433a] rounded-xl mx-auto mb-8 shadow-lg">R</div>
 
             <h1 class="text-3xl font-black text-[#17433a] uppercase tracking-tighter italic mb-2">Private <span class="text-[#b0955b]">Access</span></h1>
             
@@ -145,7 +146,14 @@
     <aside class="w-full md:w-80 bg-white border-r border-stone-200 flex flex-col z-30 shadow-2xl overflow-y-auto hidden md:flex" id="sidebar">
         <div class="p-8">
             <div class="mb-10 cursor-pointer" onclick="window.open('https://realinternational.com/', '_blank')">
-                <img id="company-logo" src="./logo.png" alt="Real International Logo" class="w-56 h-auto object-contain object-left" onerror="this.onerror=null; this.outerHTML='<div class=\\'flex items-center gap-3\\'><div class=\\'w-12 h-12 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-2xl bg-[#17433a] rounded-lg shadow-sm\\'>R</div><div><h1 class=\\'font-extrabold text-[#17433a] text-2xl leading-none tracking-tight italic\\'>REAL <span class=\\'text-[#b0955b]\\'>INT\\'L</span></h1><p class=\\'text-[#717375] text-[0.6rem] font-bold uppercase tracking-[0.3em] mt-1\\'>Capital Advisory</p></div></div>';" />
+                <img id="company-logo" src="./logo.png" alt="Real International Logo" class="w-56 h-auto object-contain object-left" onerror="this.style.display='none'; document.getElementById('company-logo-fallback').classList.remove('hidden');" />
+                <div id="company-logo-fallback" class="hidden flex items-center gap-3">
+                    <div class="w-12 h-12 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-2xl bg-[#17433a] rounded-lg shadow-sm">R</div>
+                    <div>
+                        <h1 class="font-extrabold text-[#17433a] text-2xl leading-none tracking-tight italic">REAL <span class="text-[#b0955b]">INT'L</span></h1>
+                        <p class="text-[#717375] text-[0.6rem] font-bold uppercase tracking-[0.3em] mt-1">Capital Advisory</p>
+                    </div>
+                </div>
             </div>
 
             <nav class="space-y-2">
@@ -181,7 +189,11 @@
     <!-- Mobile Header -->
     <header class="md:hidden bg-white border-b border-stone-200 p-4 flex justify-between items-center z-20">
         <div class='flex items-center gap-2 cursor-pointer' onclick="window.open('https://realinternational.com/', '_blank')">
-            <img id="mobile-logo" src="./logo.png" alt="Real International Logo" class="h-8 w-auto object-contain" onerror="this.onerror=null; this.outerHTML='<div class=\\'flex items-center gap-2\\'><div class=\\'w-8 h-8 border border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-sm bg-[#17433a] rounded-md\\'>R</div><h1 class=\\'font-extrabold text-[#17433a] text-lg leading-none tracking-tight italic\\'>REAL <span class=\\'text-[#b0955b]\\'>INT\\'L</span></h1></div>';" />
+            <img id="mobile-logo" src="./logo.png" alt="Real International Logo" class="h-8 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('mobile-logo-fallback').classList.remove('hidden');" />
+            <div id="mobile-logo-fallback" class="hidden flex items-center gap-2">
+                <div class="w-8 h-8 border border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-sm bg-[#17433a] rounded-md">R</div>
+                <h1 class="font-extrabold text-[#17433a] text-lg leading-none tracking-tight italic">REAL <span class="text-[#b0955b]">INT'L</span></h1>
+            </div>
         </div>
         <button onclick="document.getElementById('sidebar').classList.toggle('hidden')" class="text-[#17433a] text-xl p-2"><i class="fa-solid fa-bars"></i></button>
     </header>
@@ -207,9 +219,7 @@
         <div id="section-overview" class="view-section active space-y-8">
             <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-2">
                 <div>
-                    <!-- 修改前: Institutional Snapshot -->
                     <h2 class="text-3xl font-black text-[#0a0a0b] tracking-tighter uppercase italic">Private Wealth <span class="text-[#b0955b]">Snapshot</span></h2>
-                    <!-- 修改前: Consolidated private holdings. Metrics synced dynamically. -->
                     <p class="text-[#717375] text-sm mt-2 font-medium">A consolidated view of your exclusive real estate holdings. Metrics dynamically synced to track your long-term wealth accumulation.</p>
                 </div>
                 <div class="bg-[#17433a] px-8 py-5 rounded-2xl shadow-lg text-right text-white border-b-4 border-[#b0955b]">
@@ -234,32 +244,11 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass-card p-8 rounded-2xl flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xs font-black text-[#17433a] mb-6 uppercase tracking-widest italic">Alpha Performance vs Market</h3>
-                        <div class="space-y-6">
-                            <div>
-                                <div class="flex justify-between items-end mb-2">
-                                    <span class="text-sm font-bold text-[#17433a]"><i class="fa-solid fa-crown text-[#b0955b] mr-2"></i> Client Portfolio IRR</span>
-                                    <span class="text-2xl font-black text-[#b0955b] font-mono" id="val-irr">...</span>
-                                </div>
-                                <div class="w-full bg-stone-100 rounded-full h-3 overflow-hidden"><div class="bg-[#b0955b] h-full rounded-full transition-all duration-1000" id="bar-irr" style="width: 0%"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between items-end mb-2">
-                                    <span class="text-sm font-bold text-[#717375]"><i class="fa-solid fa-chart-simple mr-2"></i> US Public REITs Average</span>
-                                    <span class="text-xl font-bold text-[#717375] font-mono" id="val-benchmark">...</span>
-                                </div>
-                                <div class="w-full bg-stone-100 rounded-full h-2 overflow-hidden"><div class="bg-[#717375] h-full rounded-full transition-all duration-1000" id="bar-benchmark" style="width: 0%"></div></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-8 pt-6 border-t border-[#b0955b]/20">
-                        <button onclick="window.open('https://realinternational.portal.agorareal.com/#/login?redirectUrl=%2F', '_blank')" class="w-full py-4 bg-[#17433a] hover:bg-[#a3804f] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-3 shadow-md">
-                            <i class="fa-solid fa-shield-halved text-[#b0955b]"></i> Access Agora Client Portal
-                        </button>
-                    </div>
+                <!-- 移除了 IRR 板块，将 Agora 按钮居中放置于卡片内，保持布局平衡 -->
+                <div class="glass-card p-8 rounded-2xl flex flex-col justify-center">
+                    <button onclick="window.open('https://realinternational.portal.agorareal.com/#/login?redirectUrl=%2F', '_blank')" class="w-full py-4 bg-[#17433a] hover:bg-[#a3804f] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-3 shadow-md">
+                        <i class="fa-solid fa-shield-halved text-[#b0955b]"></i> Access Agora Client Portal
+                    </button>
                 </div>
                 
                 <div class="glass-card p-8 flex flex-col items-center">
@@ -274,7 +263,6 @@
         <div id="section-portfolio" class="view-section space-y-8">
             <header>
                 <h2 class="text-3xl font-black text-[#0a0a0b] uppercase italic">Asset <span class="text-[#b0955b]">Tracker</span></h2>
-                <!-- 修改前: Monitor core milestones and detailed management updates across your active positions. -->
                 <p class="text-[#717375] text-sm mt-2 font-medium italic">Track critical project milestones and direct management updates. Providing complete transparency and peace of mind for your active investments.</p>
             </header>
             <div class="grid grid-cols-1 gap-8" id="portfolioList">
@@ -334,6 +322,8 @@
                     <h2 class="text-3xl font-black text-[#0a0a0b] uppercase tracking-tighter italic">Market <span class="text-[#b0955b]">Updates</span></h2>
                     <p class="text-[10px] text-[#b0955b] font-bold uppercase mt-2"><i class="fa-solid fa-satellite-dish animate-pulse"></i> Hand-picked by Internal Research</p>
                 </div>
+                <!-- 新闻分类动态筛选容器 -->
+                <div id="news-filters" class="flex flex-wrap justify-center lg:justify-end gap-2"></div>
             </header>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="newsGrid">
@@ -346,7 +336,6 @@
     <script>
         // =====================================================================
         // DATA SOURCES (Google Sheets CSV Links)
-        // 已经严格替换为你提供的四个新网址，绝不改动其他逻辑
         // =====================================================================
         const URLS = {
             clients:   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTvH67J4MjdTnLi1wh3s_kiVzUDOmrBDEExM0swF5GjlBwxzVRtjH3x7Naq_HsSrwKjs1oyZZlMcBq1/pub?gid=0&single=true&output=csv",
@@ -360,6 +349,8 @@
         let CURRENT_HOLDINGS = [];
         let ACTIVE_STRATEGIES = [];
         let BASE_ALLOCATIONS = { Residential: 0, Commercial: 0, Industrial: 0, "Private Debt": 0 };
+        // 确保新闻数据能够跨作用域调用以供筛选使用
+        let GLOBAL_NEWS = [];
 
         let allocChartInstance = null;
         let proChartInstance = null;
@@ -418,7 +409,6 @@
                 const clientsData = await fetchCSV(URLS.clients);
                 
                 // BULLETPROOF MATCHING 2.0: 全息跨列扫描 + Google数字格式自适应
-                // 解决 Google Sheets 会把 "001" 自动变成 "1" 的痛点
                 const inputIdNum = (!isNaN(inputId) && inputId !== "") ? Number(inputId).toString() : inputId;
                 
                 const client = clientsData.find(c => {
@@ -525,9 +515,12 @@
                 actualStrategiesData = isStrat(rawNewsData) ? rawNewsData : (isStrat(rawStrategiesData) ? rawStrategiesData : []);
             }
 
+            // 更新到全局供筛选使用
+            GLOBAL_NEWS = actualNewsData;
+
             // A. Update Sidebar User Info (使用智能匹配，支持中英文多维表头)
             const cName = getVal(CURRENT_CLIENT, ['name', 'clientname', '客户姓名', '姓名']) || 'VIP Investor';
-            const cTier = getVal(CURRENT_CLIENT, ['tier', 'level', '级别', 'clienttier']) || 'Tier 1 VIP';
+            const cTier = getVal(CURRENT_CLIENT, ['tier', 'level', '级别', 'clienttier']) || 'VIP Investor';
             
             document.getElementById('ui-client-name').innerText = cName;
             document.getElementById('ui-client-tier').innerText = cTier;
@@ -544,19 +537,6 @@
             document.getElementById('val-cap-returned').innerText = capReturnedStr;
             document.getElementById('val-realized-yield').innerText = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['realizedyield', 'yield', '实现收益', '历史收益'])));
             
-            // IRR Bars
-            const irrStr = getVal(CURRENT_CLIENT, ['irr', '内部收益率', 'clientirr']) || '0%';
-            const benchStr = getVal(CURRENT_CLIENT, ['benchmarkirr', 'benchmark', '基准', '基准收益']) || '7.2%';
-            document.getElementById('val-irr').innerText = irrStr.includes('%') ? irrStr : irrStr + '%';
-            document.getElementById('val-benchmark').innerText = benchStr.includes('%') ? benchStr : benchStr + '%';
-            
-            setTimeout(() => {
-                const barIrr = document.getElementById('bar-irr');
-                const barBench = document.getElementById('bar-benchmark');
-                if (barIrr) barIrr.style.width = Math.min(parseNum(irrStr)*5, 100) + '%';
-                if (barBench) barBench.style.width = Math.min(parseNum(benchStr)*5, 100) + '%';
-            }, 500);
-
             // C. Build Dynamic Portfolio & Extract Base Allocations
             BASE_ALLOCATIONS = { Residential: 0, Commercial: 0, Industrial: 0, "Private Debt": 0 };
             renderDynamicPortfolio(CURRENT_HOLDINGS);
@@ -566,8 +546,8 @@
             document.getElementById('lab-returned-cap').innerText = capReturnedStr; // Update Strategy subtext
             renderDynamicStrategies(ACTIVE_STRATEGIES, parseNum(getVal(CURRENT_CLIENT, ['capitalreturned', 'returned', '已退本金', '返回资本'])));
 
-            // E. Build News
-            renderDynamicNews(actualNewsData);
+            // E. Build News (带筛选初始化)
+            renderDynamicNews(GLOBAL_NEWS);
 
             // F. Initialize Charts
             initCharts();
@@ -702,7 +682,7 @@
             }).join('');
         }
 
-        // Strategies Renderer (终极扩容版：过滤空行 + 极限词库)
+        // Strategies Renderer
         function renderDynamicStrategies(strategies, availableCapital) {
             const list = document.getElementById('strategyList');
             
@@ -753,9 +733,10 @@
             }).join('');
         }
 
-        // News Renderer (终极扩容版：过滤空行 + 极限词库)
-        function renderDynamicNews(news) {
+        // 新增了 filter 参数用于实现动态筛选新闻，并去掉了 IR Validation 模块
+        function renderDynamicNews(news, filter = 'All') {
             const grid = document.getElementById('newsGrid');
+            const filterContainer = document.getElementById('news-filters');
             
             // 核心防御：过滤纯空行，并且必须有标题才渲染
             const validNews = (news || []).filter(n => {
@@ -764,12 +745,34 @@
                 return hasContent && hasTitle;
             });
 
-            if(!validNews || validNews.length === 0) {
+            // 动态提取所有的 Category 用于生成筛选按钮
+            const categories = ['All', ...new Set(validNews.map(n => {
+                const cat = getVal(n, ['category', 'tag', '分类', '标签', '类别']);
+                return cat ? cat.trim() : 'Update';
+            }))];
+
+            // 渲染筛选按钮
+            if (filterContainer) {
+                filterContainer.innerHTML = categories.map(cat => {
+                    const safeCat = cat.replace(/'/g, "\\'");
+                    const isActive = filter === cat;
+                    const activeClass = isActive ? 'bg-[#17433a] text-white shadow-md border-[#17433a]' : 'bg-white text-[#717375] border-stone-200 hover:border-[#b0955b]';
+                    return `<button onclick="renderDynamicNews(GLOBAL_NEWS, '${safeCat}')" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${activeClass}">${cat}</button>`;
+                }).join('');
+            }
+
+            // 根据传入的条件进行筛选
+            const filteredNews = filter === 'All' ? validNews : validNews.filter(n => {
+                const cat = getVal(n, ['category', 'tag', '分类', '标签', '类别']);
+                return (cat ? cat.trim() : 'Update') === filter;
+            });
+
+            if(!filteredNews || filteredNews.length === 0) {
                  grid.innerHTML = `<div class="col-span-full bg-white p-10 rounded-[2rem] text-center border border-stone-200"><p class="text-sm text-stone-500 italic">No market updates currently available.</p></div>`;
                  return;
             }
 
-            grid.innerHTML = validNews.map(n => {
+            grid.innerHTML = filteredNews.map(n => {
                 const nCat = getVal(n, ['category', 'tag', '分类', '标签', '类别']) || 'Update';
                 const nDate = getVal(n, ['date', '日期', '时间', '发布日期']) || '';
                 const nTitle = getVal(n, ['title', '标题', 'headline', '新闻标题']) || 'Market Update';
@@ -785,10 +788,6 @@
                         </div>
                         <h4 class="text-lg font-black text-[#0a0a0b] leading-tight mb-3">${nTitle}</h4>
                         <p class="text-xs text-[#717375] leading-relaxed font-medium">Excerpt: ${nSum}</p>
-                        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100 mt-4">
-                             <p class="text-[9px] font-black text-[#17433a] uppercase mb-1 tracking-widest">IR Validation</p>
-                             <p class="text-[10px] text-stone-600 italic leading-snug font-semibold">Verified directly from Real International Research.</p>
-                        </div>
                     </div>
                     <div class="pt-4 mt-6 border-t border-stone-200">
                         ${nLink ? `<a href="${nLink}" target="_blank" class="text-[10px] font-black text-[#17433a] uppercase hover:underline flex items-center gap-1 italic tracking-widest">Read Article on RealInt'l <i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
