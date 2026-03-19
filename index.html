@@ -580,34 +580,34 @@
                 // 强大的映射抓取：无论表头是Type, Class 还是 类别，通通拿下
                 const typeRaw = getVal(p, ['type', 'assettype', 'class', '资产类别', '类别']) || 'Other';
                 const prin = parseNum(getVal(p, ['principal', 'investment', '本金', '投入本金']));
-                
+                if(BASE_ALLOCATIONS[typeRaw] !== undefined) {
+                    BASE_ALLOCATIONS[typeRaw] += parseNum(getVal(p, ['principal', 'investment', '本金', '投入本金']));
+                }
+
                 // Track for charts dynamically - 动态将新分类（如Land）注入系统分配
                 if(BASE_ALLOCATIONS[typeRaw] === undefined) {
                     BASE_ALLOCATIONS[typeRaw] = 0;
                 }
                 BASE_ALLOCATIONS[typeRaw] += prin;
 
-                // 完美支持您截图中的 VIBE 列情绪控制
-                let vibeClass = getVal(p, ['vibe', '风格', '氛围']);
-                if (!vibeClass) {
-                    // 如果表格中没填 VIBE，按资产类型自动给兜底主题色
-                    if(typeRaw.toLowerCase() === 'residential') vibeClass = "vibe-growth";
-                    else if(typeRaw.toLowerCase() === 'commercial') vibeClass = "vibe-stable";
-                    else if(typeRaw.toLowerCase() === 'industrial') vibeClass = "border-l-4 border-[#17433a]";
-                    else if(typeRaw.toLowerCase() === 'private debt') vibeClass = "border-l-4 border-[#717375]";
-                    else vibeClass = "border-l-4 border-stone-300"; // 兜底颜色，给 Land 等新资产
-                }
+                // --- 核心修改区开始 ---
+                // 提取 Vibe 栏，客户明确要求这段文字直接读取自 Vibe 列
+                let vibeTextFromSheet = getVal(p, ['vibe', '风格', '氛围']);
+                const tStr = typeRaw.toLowerCase();
+                
+                // 动态分配卡片左侧边框的颜色（解除原本 Vibe 列必须填代码的绑定，按资产类别自动分配）
+                let vibeClass = "border-l-4 border-stone-300"; 
+                if (vibeTextFromSheet === "vibe-growth" || tStr.includes('residential') || tStr.includes('resi')) vibeClass = "vibe-growth";
+                else if (vibeTextFromSheet === "vibe-stable" || tStr.includes('commercial') || tStr.includes('comm')) vibeClass = "vibe-stable";
+                else if (vibeTextFromSheet === "vibe-defensive" || tStr.includes('industrial') || tStr.includes('ind')) vibeClass = "border-l-4 border-[#17433a]";
+                else if (tStr.includes('private debt') || tStr.includes('debt')) vibeClass = "border-l-4 border-[#717375]";
 
-                // VIBE 智能语义补全：根据氛围自动生成高逼格 IR 总结
-                let autoSummary = "Strategic holding positioned for targeted portfolio returns.";
-                const vStr = vibeClass.toLowerCase();
-                if (vStr.includes('growth')) {
-                    autoSummary = "Optimized for capital appreciation and high-growth yields.";
-                } else if (vStr.includes('stable') || vStr.includes('99b2ac')) {
-                    autoSummary = "Core stabilized asset delivering consistent and defensive cash flow.";
-                } else if (vStr.includes('defensive') || vStr.includes('717375')) {
-                    autoSummary = "Prioritizing principal protection and predictable income generation.";
+                // 核心修改：让红框内的一句话总结优先与表格的 Vibe 一列完全对应
+                let pSum = "";
+                if (vibeTextFromSheet && !vibeTextFromSheet.startsWith('vibe-')) {
+                    pSum = vibeTextFromSheet; // 直接使用客户在 Vibe 列里写的原话
                 }
+                // --- 核心修改区结束 ---
 
                 // 里程碑智能抓取雷达
                 let milestones = [];
@@ -643,10 +643,26 @@
                 const pName = getVal(p, ['projectname', 'name', '项目', '项目名称']) || 'Asset';
                 const pPrin = parseNum(getVal(p, ['principal', 'investment', '本金', '投入本金']));
                 
-                let pSum = getVal(p, ['summary', '简介', '摘要', '概览']);
-                if (!pSum || pSum.trim() === '') {
-                    pSum = autoSummary; // 如果客户没填 Summary，自动用 VIBE 兜底！
+                // --- 兜底逻辑区开始 ---
+                // 如果 Vibe 栏没写字，则向下兼容去找 Summary 栏
+                if (!pSum || String(pSum).trim() === '') {
+                    pSum = getVal(p, ['summary', '简介', '摘要', '概览', 'description', '描述', 'projectsummary', '项目简介', '总结', 'notes', '备注']);
                 }
+
+                // 如果连 Summary 栏都没写，再调用智能 IR 兜底文案
+                if (!pSum || String(pSum).trim() === '') {
+                    if (tStr.includes('growth') || tStr.includes('residential') || tStr.includes('resi')) {
+                        pSum = "Optimized for capital appreciation and high-growth yields.";
+                    } else if (tStr.includes('stable') || tStr.includes('commercial') || tStr.includes('comm')) {
+                        pSum = "Core stabilized asset delivering consistent and defensive cash flow.";
+                    } else if (tStr.includes('defensive') || tStr.includes('debt')) {
+                        pSum = "Prioritizing principal protection and predictable income generation.";
+                    } else {
+                        pSum = "Strategic holding positioned for targeted portfolio returns.";
+                    }
+                }
+                // --- 兜底逻辑区结束 ---
+
                 const pDet = getVal(p, ['details', 'update', '详情', '更新', '管理更新']);
 
                 return `
@@ -668,7 +684,8 @@
                             </div>
 
                             <div class="lg:w-1/4 w-full flex flex-col justify-center">
-                                <p class="text-xs text-stone-600 font-medium leading-relaxed mb-4 italic">"${pSum}"</p>
+                                <!-- 修改点：加入 whitespace-pre-wrap，保留表格中的空行和段落换行 -->
+                                <p class="text-xs text-stone-600 font-medium leading-relaxed mb-4 italic whitespace-pre-wrap">"${pSum}"</p>
                                 
                                 <button onclick="window.toggleProjectDetails(${idx})" class="w-full py-2.5 bg-[#f3eee4] hover:bg-stone-200 border border-[#b0955b]/20 rounded-lg text-xs font-bold text-[#17433a] transition-colors flex items-center justify-center gap-2 shadow-sm">
                                     View Detailed Update <i id="proj-icon-${idx}" class="fa-solid fa-chevron-down"></i>
@@ -683,7 +700,8 @@
                         <div id="proj-details-${idx}" class="hidden mt-6 pt-6 border-t border-stone-100">
                             <div class="bg-stone-50 border border-stone-200 p-6 rounded-2xl">
                                 <p class="text-[10px] font-black text-[#17433a] uppercase mb-2 tracking-widest"><i class="fa-solid fa-bolt-lightning text-[#b0955b] mr-1"></i> Asset Management Track</p>
-                                <p class="text-sm text-stone-700 leading-relaxed">${pDet || 'Live updates pending...'}</p>
+                                <!-- 修改点：加入 whitespace-pre-wrap，还原管理更新的长段落文本排版 -->
+                                <p class="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap">${pDet || 'Live updates pending...'}</p>
                             </div>
                         </div>
                     </div>
