@@ -115,7 +115,6 @@
     <div id="login-overlay" class="fixed inset-0 z-50 bg-[#f3eee4] flex flex-col items-center justify-center p-6">
         <div class="bg-white/90 backdrop-blur-md border border-[#b0955b]/30 p-10 md:p-14 rounded-3xl shadow-2xl w-full max-w-md relative z-10 text-center">
             
-            <!-- 替换后的专属 Logo，高度放大到 h-28，完美适配浅色背景。修复了转义冲突。 -->
             <img id="login-logo" src="./logo.png" alt="Real International Logo" class="h-28 w-auto object-contain mx-auto mb-8 drop-shadow-sm" onerror="this.style.display='none'; document.getElementById('login-logo-fallback').classList.remove('hidden');" />
             <div id="login-logo-fallback" class="hidden w-28 h-28 border-2 border-[#b0955b] flex items-center justify-center text-[#b0955b] font-black text-5xl bg-[#17433a] rounded-xl mx-auto mb-8 shadow-lg">R</div>
 
@@ -128,8 +127,6 @@
                 <div>
                     <!-- Client 改为了 Investor -->
                     <label class="block text-[10px] font-black uppercase text-[#b0955b] tracking-widest mb-2">Investor Access ID</label>
-                    
-                    <!-- 去除占位符，调整配色适配浅色主题 -->
                     <input type="text" id="clientIdInput" class="w-full bg-stone-50 border border-stone-200 text-[#17433a] p-4 rounded-xl focus:outline-none focus:border-[#b0955b] focus:ring-1 focus:ring-[#b0955b] transition-all font-mono" onkeypress="if(event.key === 'Enter') authenticateVIP()">
                 </div>
                 <button id="loginBtn" onclick="authenticateVIP()" class="w-full bg-[#17433a] text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-[#b0955b] transition-all flex items-center justify-center gap-2 shadow-lg">
@@ -215,7 +212,9 @@
             <i class="fa-solid fa-arrow-right text-[#b0955b]"></i>
         </div>
 
-        <!-- View: Overview -->
+        <!-- ========================================== -->
+        <!-- VIEW: OVERVIEW (SNAPSHOT)                  -->
+        <!-- ========================================== -->
         <div id="section-overview" class="view-section active space-y-8">
             <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-2">
                 <div>
@@ -243,11 +242,41 @@
                 </div>
             </div>
 
+            <!-- 新增：资产生命周期 (Asset Lifecycle) 进度条卡片 -->
+            <div class="glass-card p-6 md:p-8 flex flex-col justify-center">
+                <div class="flex flex-col md:flex-row md:justify-between md:items-end mb-4 gap-2">
+                    <h3 class="text-xs font-black text-[#17433a] uppercase tracking-widest italic">Capital Deployment Phase</h3>
+                    <p class="text-[10px] text-[#717375] font-bold uppercase tracking-widest">Balancing cash flow with capital appreciation</p>
+                </div>
+                <div id="lifecycle-bar-container" class="w-full h-4 bg-stone-100 rounded-full overflow-hidden flex shadow-inner">
+                    <div class="h-full bg-stone-200 w-full animate-pulse"></div>
+                </div>
+                <div id="lifecycle-legend" class="flex flex-wrap gap-x-6 gap-y-2 mt-5 text-[10px] font-bold text-[#717375] uppercase tracking-widest">
+                    <!-- 动态生成图例 -->
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- 移除了 IRR 板块，将 Agora 按钮居中放置于卡片内，保持布局平衡 -->
-                <div class="glass-card p-8 rounded-2xl flex flex-col justify-center">
-                    <button onclick="window.open('https://realinternational.portal.agorareal.com/#/login?redirectUrl=%2F', '_blank')" class="w-full py-4 bg-[#17433a] hover:bg-[#a3804f] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-3 shadow-md">
-                        <i class="fa-solid fa-shield-halved text-[#b0955b]"></i> Access Agora Client Portal
+                <!-- 修复与重塑：专属安全金库卡片 -->
+                <div class="glass-card p-8 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                    <div class="absolute -right-6 -bottom-6 opacity-[0.03] text-9xl text-[#17433a] group-hover:scale-110 group-hover:-rotate-6 transition-all duration-700 pointer-events-none">
+                        <i class="fa-solid fa-vault"></i>
+                    </div>
+                    
+                    <div class="relative z-10 mb-6">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-[#f3eee4] flex items-center justify-center text-[#b0955b] shadow-inner">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <h3 class="text-sm font-black text-[#17433a] uppercase tracking-widest italic">Document Vault</h3>
+                        </div>
+                        <p class="text-xs text-[#717375] font-medium leading-relaxed">
+                            Access your enterprise-grade portal for live distributions, K-1 tax documents, and audited financial reports.
+                        </p>
+                    </div>
+                    
+                    <button onclick="window.open('https://realinternational.portal.agorareal.com/#/login?redirectUrl=%2F', '_blank')" class="relative z-10 w-full py-4 bg-[#17433a] hover:bg-[#b0955b] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-md group-hover:shadow-lg">
+                        <i class="fa-solid fa-arrow-right-to-bracket text-[#b0955b] group-hover:text-white transition-colors"></i> Enter Agora Portal
                     </button>
                 </div>
                 
@@ -257,21 +286,24 @@
                     <div class="chart-container w-full" style="height: 220px;"><canvas id="allocationChart"></canvas></div>
                 </div>
             </div>
-        </div>
+        </div> <!-- ✅ 修复点：彻底闭合 Section Overview，防止结构嵌套坍塌 -->
 
-        <!-- View: Portfolio Deep-Dive -->
+        <!-- ========================================== -->
+        <!-- VIEW: PORTFOLIO DEEP-DIVE                  -->
+        <!-- ========================================== -->
         <div id="section-portfolio" class="view-section space-y-8">
             <header>
                 <h2 class="text-3xl font-black text-[#0a0a0b] uppercase italic">Asset <span class="text-[#b0955b]">Tracker</span></h2>
                 <p class="text-[#717375] text-sm mt-2 font-medium italic">Track critical project milestones and direct management updates. Providing complete transparency and peace of mind for your active investments.</p>
             </header>
             <div class="grid grid-cols-1 gap-8" id="portfolioList">
-                <!-- Dynamically populated from Sheet 2 -->
                 <div class="flex justify-center py-10"><div class="loader"></div></div>
             </div>
         </div>
 
-        <!-- View: Strategy Lab -->
+        <!-- ========================================== -->
+        <!-- VIEW: STRATEGY LAB                         -->
+        <!-- ========================================== -->
         <div id="section-strategy" class="view-section space-y-8">
             <header>
                 <h2 class="text-3xl font-black text-[#0a0a0b] uppercase italic">Strategy <span class="text-[#b0955b]">Lab</span> <span class="text-sm font-bold text-white bg-[#b0955b] px-3 py-1 rounded ml-2 align-middle not-italic">PRO-FORMA</span></h2>
@@ -282,7 +314,6 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div class="lg:col-span-7 space-y-4" id="strategyList">
-                    <!-- Dynamically populated from Sheet 4 -->
                     <div class="flex justify-center py-10"><div class="loader"></div></div>
                 </div>
 
@@ -315,19 +346,19 @@
             </div>
         </div>
 
-        <!-- View: Market Updates -->
+        <!-- ========================================== -->
+        <!-- VIEW: MARKET UPDATES                       -->
+        <!-- ========================================== -->
         <div id="section-news" class="view-section space-y-8">
             <header class="flex flex-col lg:flex-row justify-between items-center gap-6 border-b border-stone-200 pb-6 text-center md:text-left">
                 <div>
                     <h2 class="text-3xl font-black text-[#0a0a0b] uppercase tracking-tighter italic">Market <span class="text-[#b0955b]">Updates</span></h2>
                     <p class="text-[10px] text-[#b0955b] font-bold uppercase mt-2"><i class="fa-solid fa-satellite-dish animate-pulse"></i> Hand-picked by Internal Research</p>
                 </div>
-                <!-- 新闻分类动态筛选容器 -->
                 <div id="news-filters" class="flex flex-wrap justify-center lg:justify-end gap-2"></div>
             </header>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="newsGrid">
-                <!-- Dynamically populated from Sheet 3 -->
             </div>
         </div>
 
@@ -349,29 +380,27 @@
         let CURRENT_HOLDINGS = [];
         let ACTIVE_STRATEGIES = [];
         
-        // 升级点：动态解析基准持仓，不再写死分类，未来如果加入 Land 或是 Data Center 自动计算！
         let BASE_ALLOCATIONS = {};
         
-        // 确保新闻数据能够跨作用域调用以供筛选使用
+        // 动态解析生命周期（Lifecycle）
+        let LIFECYCLE_ALLOCATIONS = {};
+        let TOTAL_PRINCIPAL = 0;
+        
         let GLOBAL_NEWS = [];
 
         let allocChartInstance = null;
         let proChartInstance = null;
 
-        // Utility: Format Currency
         const fmtMoney = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val || 0);
-        // Utility: Parse Numeric safely
         const parseNum = (str) => {
             if(!str) return 0;
             return parseFloat(str.toString().replace(/[^0-9.-]+/g,"")) || 0;
         };
         
-        // 核心科技 - 模糊语义匹配引擎
         const getVal = (obj, possibleKeys) => {
             if(!obj) return '';
             const keys = Object.keys(obj);
             for (let pk of possibleKeys) {
-                // 将表格里的实际表头和我们的目标词汇，全部去掉空格、横杠并转小写比对
                 const normalizedPk = pk.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '');
                 const match = keys.find(k => k.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '') === normalizedPk);
                 if (match && obj[match] !== undefined && obj[match] !== "") return obj[match];
@@ -379,11 +408,7 @@
             return '';
         };
 
-        // =====================================================================
-        // 1. VIP Authentication & Initialization
-        // =====================================================================
         window.onload = function() {
-            // Check URL parameters for direct access
             const urlParams = new URLSearchParams(window.location.search);
             const idFromUrl = urlParams.get('id') || urlParams.get('clientId');
             if (idFromUrl) {
@@ -401,66 +426,61 @@
 
             if(!inputId) return;
 
-            // UI Loading State
             btn.disabled = true;
             btnText.classList.add('hidden');
             loader.classList.remove('hidden');
             errorMsg.classList.add('hidden');
 
             try {
-                // Fetch Core Client Data
                 const clientsData = await fetchCSV(URLS.clients);
                 
-                // BULLETPROOF MATCHING 2.0: 全息跨列扫描 + Google数字格式自适应
+                // BULLETPROOF MATCHING 3.0: 全息脱水匹配，无视空格横杠
                 const inputIdNum = (!isNaN(inputId) && inputId !== "") ? Number(inputId).toString() : inputId;
+                const cleanInput = inputId.replace(/[^A-Z0-9]/ig, '');
                 
                 const client = clientsData.find(c => {
                     return Object.values(c).some(val => {
                         if(!val) return false;
                         const strVal = String(val).trim().toUpperCase();
-                        return strVal === inputId || strVal === inputIdNum;
+                        const cleanVal = strVal.replace(/[^A-Z0-9]/ig, '');
+                        return strVal === inputId || strVal === inputIdNum || (cleanInput !== '' && cleanVal === cleanInput);
                     });
                 });
 
                 if (!client) {
-                    // 移除 console.error 避免控制台标红，转而交给 catch 块优雅处理
                     throw new Error("ID_NOT_FOUND");
                 }
 
                 CURRENT_CLIENT = client;
                 
-                // Fetch the rest of the data simultaneously to save time
                 const [holdingsData, rawNewsData, rawStrategiesData] = await Promise.all([
                     fetchCSV(URLS.holdings),
                     fetchCSV(URLS.news),
                     fetchCSV(URLS.strategies)
                 ]);
 
-                // Filter Holdings: 同样使用全息扫描，确保不漏掉任何资产记录
                 CURRENT_HOLDINGS = holdingsData.filter(h => {
                     return Object.values(h).some(val => {
                         if(!val) return false;
                         const strVal = String(val).trim().toUpperCase();
-                        return strVal === inputId || strVal === inputIdNum;
+                        const cleanVal = strVal.replace(/[^A-Z0-9]/ig, '');
+                        return strVal === inputId || strVal === inputIdNum || (cleanInput !== '' && cleanVal === cleanInput);
                     });
                 });
                 
-                // Initialize Dashboard
                 buildDashboard(rawNewsData, rawStrategiesData);
 
-                // Hide Overlay gracefully
                 document.getElementById('login-overlay').classList.add('fade-out');
-                document.body.style.overflow = 'auto'; // Restore scroll
+                document.body.style.overflow = 'auto'; 
                 document.getElementById('main-content').style.opacity = '1';
                 
             } catch (error) {
-                // 仅当不是常规的 ID 找不到时才在控制台打印真实错误，避免误导
                 if (error.message !== "ID_NOT_FOUND") {
                     console.error("System Error Details:", error);
+                    errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Data connection error. Please verify Google Sheet links.';
+                } else {
+                    errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Investor not found';
                 }
-                
-                // 极简报错，符合机构的干净与利落感
-                errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Investor not found';
                 errorMsg.classList.remove('hidden');
             } finally {
                 btn.disabled = false;
@@ -469,7 +489,6 @@
             }
         }
 
-        // CSV Fetch Wrapper (终极升级版：原生 Fetch API 配合数据自动清洗)
         async function fetchCSV(url) {
             try {
                 const response = await fetch(url);
@@ -477,7 +496,6 @@
                 
                 const csvText = await response.text();
                 
-                // 核心防御机制：如果Google返回的是一个登录页面(HTML)而非CSV，抛出专门的错误
                 if (csvText.trim().startsWith("<!DOCTYPE html>") || csvText.trim().startsWith("<html")) {
                     throw new Error("HTML_RETURNED");
                 }
@@ -501,15 +519,11 @@
                     });
                 });
             } catch (e) {
-                throw e; // 将错误向上传递给 authenticateVIP 处理
+                throw e; 
             }
         }
 
-        // =====================================================================
-        // 2. Build Dashboard Logic
-        // =====================================================================
         function buildDashboard(rawNewsData, rawStrategiesData) {
-            // 黑科技：Self-Healing 自动路由 (防止新闻表和策略表的链接贴反)
             let actualNewsData = rawNewsData;
             let actualStrategiesData = rawStrategiesData;
             
@@ -517,26 +531,21 @@
             const isStrat = (data) => data && data.length > 0 && Object.keys(data[0]).join('').toLowerCase().includes('offering');
 
             if (isStrat(rawNewsData) || isNews(rawStrategiesData)) {
-                console.warn("[IR-System] 检测到 News 与 Strategies 链接贴反，已自动执行内存纠偏。");
                 actualNewsData = isNews(rawStrategiesData) ? rawStrategiesData : (isNews(rawNewsData) ? rawNewsData : []);
                 actualStrategiesData = isStrat(rawNewsData) ? rawNewsData : (isStrat(rawStrategiesData) ? rawStrategiesData : []);
             }
 
-            // 更新到全局供筛选使用
             GLOBAL_NEWS = actualNewsData;
 
-            // A. Update Sidebar User Info (使用智能匹配，支持中英文多维表头)
             const cName = getVal(CURRENT_CLIENT, ['name', 'clientname', '客户姓名', '姓名']) || 'VIP Investor';
             const cTier = getVal(CURRENT_CLIENT, ['tier', 'level', '级别', 'clienttier']) || 'VIP Investor';
             
             document.getElementById('ui-client-name').innerText = cName;
             document.getElementById('ui-client-tier').innerText = cTier;
             
-            // Get Initials for Avatar
             let initials = cName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
             document.getElementById('ui-avatar').innerText = initials;
 
-            // B. Populate Overview Section (使用智能匹配)
             document.getElementById('val-net-principal').innerText = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['netprincipal', 'principal', '总本金', '净本金'])));
             document.getElementById('val-cum-basis').innerText = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['cumulativebasis', 'basis', '累计基数', '累计本金'])));
             
@@ -544,31 +553,24 @@
             document.getElementById('val-cap-returned').innerText = capReturnedStr;
             document.getElementById('val-realized-yield').innerText = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['realizedyield', 'yield', '实现收益', '历史收益'])));
             
-            // C. Build Dynamic Portfolio & Extract Base Allocations
-            BASE_ALLOCATIONS = {}; // 重置全局状态，全动态侦测
+            BASE_ALLOCATIONS = {}; 
+            LIFECYCLE_ALLOCATIONS = {};
+            TOTAL_PRINCIPAL = 0;
             renderDynamicPortfolio(CURRENT_HOLDINGS);
+            renderLifecycleBar();
 
-            // D. Build Dynamic Strategies (Lab)
             ACTIVE_STRATEGIES = actualStrategiesData;
-            document.getElementById('lab-returned-cap').innerText = capReturnedStr; // Update Strategy subtext
+            document.getElementById('lab-returned-cap').innerText = capReturnedStr; 
             renderDynamicStrategies(ACTIVE_STRATEGIES, parseNum(getVal(CURRENT_CLIENT, ['capitalreturned', 'returned', '已退本金', '返回资本'])));
 
-            // E. Build News (带筛选初始化)
             renderDynamicNews(GLOBAL_NEWS);
 
-            // F. Initialize Charts
             initCharts();
-            runSim(); // Run initial calculation
+            runSim(); 
 
-            // G. Show Overview by default
             showSection('overview');
         }
 
-        // =====================================================================
-        // 3. Render Functions (Injecting Google Sheets Data to HTML)
-        // =====================================================================
-        
-        // Portfolio Renderer
         function renderDynamicPortfolio(holdings) {
             const list = document.getElementById('portfolioList');
             if(!holdings || holdings.length === 0) {
@@ -577,48 +579,42 @@
             }
             
             list.innerHTML = holdings.map((p, idx) => {
-                // 强大的映射抓取：无论表头是Type, Class 还是 类别，通通拿下
                 const typeRaw = getVal(p, ['type', 'assettype', 'class', '资产类别', '类别']) || 'Other';
                 const prin = parseNum(getVal(p, ['principal', 'investment', '本金', '投入本金']));
-                if(BASE_ALLOCATIONS[typeRaw] !== undefined) {
-                    BASE_ALLOCATIONS[typeRaw] += parseNum(getVal(p, ['principal', 'investment', '本金', '投入本金']));
-                }
-
-                // Track for charts dynamically - 动态将新分类（如Land）注入系统分配
+                
                 if(BASE_ALLOCATIONS[typeRaw] === undefined) {
                     BASE_ALLOCATIONS[typeRaw] = 0;
                 }
                 BASE_ALLOCATIONS[typeRaw] += prin;
 
-                // --- 核心修改区开始 ---
-                // 提取 Vibe 栏，客户明确要求这段文字直接读取自 Vibe 列
+                let lifecycleRaw = getVal(p, ['lifecycle phase', 'lifecycle', '生命周期', '阶段', 'phase']) || 'Stabilized / Cash-Flowing';
+                if(LIFECYCLE_ALLOCATIONS[lifecycleRaw] === undefined) {
+                    LIFECYCLE_ALLOCATIONS[lifecycleRaw] = 0;
+                }
+                LIFECYCLE_ALLOCATIONS[lifecycleRaw] += prin;
+                TOTAL_PRINCIPAL += prin;
+
                 let vibeTextFromSheet = getVal(p, ['vibe', '风格', '氛围']);
                 const tStr = typeRaw.toLowerCase();
                 
-                // 动态分配卡片左侧边框的颜色（解除原本 Vibe 列必须填代码的绑定，按资产类别自动分配）
                 let vibeClass = "border-l-4 border-stone-300"; 
                 if (vibeTextFromSheet === "vibe-growth" || tStr.includes('residential') || tStr.includes('resi')) vibeClass = "vibe-growth";
                 else if (vibeTextFromSheet === "vibe-stable" || tStr.includes('commercial') || tStr.includes('comm')) vibeClass = "vibe-stable";
                 else if (vibeTextFromSheet === "vibe-defensive" || tStr.includes('industrial') || tStr.includes('ind')) vibeClass = "border-l-4 border-[#17433a]";
                 else if (tStr.includes('private debt') || tStr.includes('debt')) vibeClass = "border-l-4 border-[#717375]";
 
-                // 核心修改：让红框内的一句话总结优先与表格的 Vibe 一列完全对应
                 let pSum = "";
                 if (vibeTextFromSheet && !vibeTextFromSheet.startsWith('vibe-')) {
-                    pSum = vibeTextFromSheet; // 直接使用客户在 Vibe 列里写的原话
+                    pSum = vibeTextFromSheet; 
                 }
-                // --- 核心修改区结束 ---
 
-                // 里程碑智能抓取雷达
                 let milestones = [];
                 for(let i=1; i<=4; i++) {
-                    // 完美兼容 MILESTONE1 或 Milestone 1 等写法
                     let mName = getVal(p, [`milestone${i}`, `m${i}name`, `里程碑${i}`, `阶段${i}`]);
                     let mStatus = getVal(p, [`milestone${i}status`, `m${i}status`, `状态${i}`, `里程碑${i}状态`]);
                     
                     if(mName) {
                         let s = (mStatus || 'pending').toLowerCase().trim();
-                        // 防御机制：如果表格里拼错词，强制重置为 pending，防止界面崩溃
                         if(!['done', 'active', 'pending'].includes(s)) s = 'pending';
                         milestones.push({ n: mName, s: s });
                     }
@@ -643,13 +639,10 @@
                 const pName = getVal(p, ['projectname', 'name', '项目', '项目名称']) || 'Asset';
                 const pPrin = parseNum(getVal(p, ['principal', 'investment', '本金', '投入本金']));
                 
-                // --- 兜底逻辑区开始 ---
-                // 如果 Vibe 栏没写字，则向下兼容去找 Summary 栏
                 if (!pSum || String(pSum).trim() === '') {
                     pSum = getVal(p, ['summary', '简介', '摘要', '概览', 'description', '描述', 'projectsummary', '项目简介', '总结', 'notes', '备注']);
                 }
 
-                // 如果连 Summary 栏都没写，再调用智能 IR 兜底文案
                 if (!pSum || String(pSum).trim() === '') {
                     if (tStr.includes('growth') || tStr.includes('residential') || tStr.includes('resi')) {
                         pSum = "Optimized for capital appreciation and high-growth yields.";
@@ -661,7 +654,6 @@
                         pSum = "Strategic holding positioned for targeted portfolio returns.";
                     }
                 }
-                // --- 兜底逻辑区结束 ---
 
                 const pDet = getVal(p, ['details', 'update', '详情', '更新', '管理更新']);
 
@@ -684,7 +676,6 @@
                             </div>
 
                             <div class="lg:w-1/4 w-full flex flex-col justify-center">
-                                <!-- 修改点：加入 whitespace-pre-wrap，保留表格中的空行和段落换行 -->
                                 <p class="text-xs text-stone-600 font-medium leading-relaxed mb-4 italic whitespace-pre-wrap">"${pSum}"</p>
                                 
                                 <button onclick="window.toggleProjectDetails(${idx})" class="w-full py-2.5 bg-[#f3eee4] hover:bg-stone-200 border border-[#b0955b]/20 rounded-lg text-xs font-bold text-[#17433a] transition-colors flex items-center justify-center gap-2 shadow-sm">
@@ -700,7 +691,6 @@
                         <div id="proj-details-${idx}" class="hidden mt-6 pt-6 border-t border-stone-100">
                             <div class="bg-stone-50 border border-stone-200 p-6 rounded-2xl">
                                 <p class="text-[10px] font-black text-[#17433a] uppercase mb-2 tracking-widest"><i class="fa-solid fa-bolt-lightning text-[#b0955b] mr-1"></i> Asset Management Track</p>
-                                <!-- 修改点：加入 whitespace-pre-wrap，还原管理更新的长段落文本排版 -->
                                 <p class="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap">${pDet || 'Live updates pending...'}</p>
                             </div>
                         </div>
@@ -709,11 +699,9 @@
             }).join('');
         }
 
-        // Strategies Renderer
         function renderDynamicStrategies(strategies, availableCapital) {
             const list = document.getElementById('strategyList');
             
-            // 核心防御：过滤掉 Google Sheets 可能产生的纯空行
             const validStrategies = (strategies || []).filter(s => Object.values(s).some(val => val && String(val).trim() !== ''));
 
             if(!validStrategies || validStrategies.length === 0) {
@@ -727,7 +715,6 @@
                 const sId = `chk-strat-${idx}`;
                 const valId = `val-strat-${idx}`;
                 
-                // 完美匹配截图中带有下划线的列名 (Tagline, Monthly_Yield_Pct, Total_Profit_Pct)
                 const sName = getVal(s, ['name', 'strategy', 'offering', '项目名称', '项目', '产品', 'title', '标题']) || 'New Offering';
                 const sClass = getVal(s, ['assetclass', 'type', '资产类别', '类别', 'class', '资产', '板块']) || 'Residential';
                 const sIcon = getVal(s, ['icon', '图标', 'iconclass']) || 'fa-solid fa-chart-pie';
@@ -735,7 +722,6 @@
                 const sHighlight = getVal(s, ['tagline', 'highlight', '亮点', '特点', '核心卖点', '高亮']) || '';
                 const sDesc = getVal(s, ['description', '描述', '简介', '详情', '说明']) || '';
                 
-                // 年化数字转换 (获取0.08等，供JS计算用)
                 const mMult = getVal(s, ['monthlyyieldpct', 'monthlymultiplier', '月乘数', 'monthly', '月付', '月化', '月息', '月收益']) || 0;
                 const eMult = getVal(s, ['totalprofitpct', 'equitymultiplier', '权益乘数', 'equity', 'term', '总收益', '预期收益', '期末收益', '乘数']) || 0;
 
@@ -760,25 +746,51 @@
             }).join('');
         }
 
-        // 新增了 filter 参数用于实现动态筛选新闻，并去掉了 IR Validation 模块
+        function renderLifecycleBar() {
+            const container = document.getElementById('lifecycle-bar-container');
+            const legend = document.getElementById('lifecycle-legend');
+            if (!container || !legend || TOTAL_PRINCIPAL === 0) return;
+
+            const colors = ['bg-[#17433a]', 'bg-[#b0955b]', 'bg-[#99b2ac]', 'bg-[#717375]', 'bg-[#d4c5b0]'];
+            const legendColors = ['text-[#17433a]', 'text-[#b0955b]', 'text-[#99b2ac]', 'text-[#717375]', 'text-[#d4c5b0]'];
+            
+            let barHtml = '';
+            let legendHtml = '';
+            let colorIdx = 0;
+
+            const sortedPhases = Object.entries(LIFECYCLE_ALLOCATIONS).sort((a, b) => b[1] - a[1]);
+
+            for (const [phase, amount] of sortedPhases) {
+                if (amount <= 0) continue;
+                const pct = ((amount / TOTAL_PRINCIPAL) * 100).toFixed(1);
+                const colorClass = colors[colorIdx % colors.length];
+                const textClass = legendColors[colorIdx % legendColors.length];
+                
+                barHtml += `<div class="${colorClass} h-full transition-all duration-1000 border-r border-white/20 last:border-r-0" style="width: ${pct}%" title="${phase}: ${pct}%"></div>`;
+                legendHtml += `<div class="flex items-center gap-1.5"><span class="${textClass}"><i class="fa-solid fa-circle text-[8px]"></i></span> <span>${phase} <span class="font-black text-[#0a0a0b] ml-0.5">${pct}%</span></span></div>`;
+                
+                colorIdx++;
+            }
+
+            container.innerHTML = barHtml;
+            legend.innerHTML = legendHtml;
+        }
+
         function renderDynamicNews(news, filter = 'All') {
             const grid = document.getElementById('newsGrid');
             const filterContainer = document.getElementById('news-filters');
             
-            // 核心防御：过滤纯空行，并且必须有标题才渲染
             const validNews = (news || []).filter(n => {
                 const hasContent = Object.values(n).some(val => val && String(val).trim() !== '');
                 const hasTitle = getVal(n, ['title', '标题', 'headline', '新闻标题']);
                 return hasContent && hasTitle;
             });
 
-            // 动态提取所有的 Category 用于生成筛选按钮
             const categories = ['All', ...new Set(validNews.map(n => {
                 const cat = getVal(n, ['category', 'tag', '分类', '标签', '类别']);
                 return cat ? cat.trim() : 'Update';
             }))];
 
-            // 渲染筛选按钮
             if (filterContainer) {
                 filterContainer.innerHTML = categories.map(cat => {
                     const safeCat = cat.replace(/'/g, "\\'");
@@ -788,7 +800,6 @@
                 }).join('');
             }
 
-            // 根据传入的条件进行筛选
             const filteredNews = filter === 'All' ? validNews : validNews.filter(n => {
                 const cat = getVal(n, ['category', 'tag', '分类', '标签', '类别']);
                 return (cat ? cat.trim() : 'Update') === filter;
@@ -823,9 +834,6 @@
             }).join('');
         }
 
-        // =====================================================================
-        // 4. Core Interactive Logics (Charts & Sim)
-        // =====================================================================
         function showSection(id) {
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
             const target = document.getElementById('section-' + id);
@@ -857,7 +865,6 @@
             let monthlyAdd = 0; 
             let equityAdd = 0; 
             
-            // Deep copy dynamically detected base allocations
             let simBals = { ...BASE_ALLOCATIONS }; 
 
             const checkboxes = document.querySelectorAll('.strategy-checkbox');
@@ -868,11 +875,9 @@
                     const eMult = parseNum(chk.getAttribute('data-emult'));
                     const assetClass = chk.getAttribute('data-asset') || 'Other';
 
-                    // 数值换算防御：如果表里填了年化0.08，系统自动除以12算出月现金流
                     monthlyAdd += (inputVal * mMult) / 12; 
                     equityAdd += inputVal * eMult;
 
-                    // Dynamic fallback logic for newly detected categories
                     let mappedClass = Object.keys(simBals).find(k => k.toLowerCase() === assetClass.toLowerCase());
                     if(!mappedClass) {
                         mappedClass = assetClass;
@@ -888,7 +893,6 @@
             if(proChartInstance) {
                 const dynamicLabels = Object.keys(simBals);
                 const dynamicData = Object.values(simBals);
-                // 给新分类（如Land）准备的高级色板扩展
                 const extendedPalette = ['#17433a', '#b0955b', '#99b2ac', '#717375', '#d4c5b0', '#2d3748', '#8b5cf6', '#ecc94b'];
                 const dynamicColors = dynamicLabels.map((_, i) => extendedPalette[i % extendedPalette.length]);
                 
@@ -903,13 +907,12 @@
             const chartLabels = Object.keys(BASE_ALLOCATIONS);
             const chartData = Object.values(BASE_ALLOCATIONS);
             
-            // Extended color palette for automatically detected new asset classes (e.g. Land, Data Centers)
             const extendedPalette = ['#17433a', '#b0955b', '#99b2ac', '#717375', '#d4c5b0', '#2d3748', '#8b5cf6', '#ecc94b'];
             const chartColors = chartLabels.map((_, i) => extendedPalette[i % extendedPalette.length]);
 
             const allocCtx = document.getElementById('allocationChart')?.getContext('2d');
             if(allocCtx) {
-                if(allocChartInstance) allocChartInstance.destroy(); // Prevent memory leak
+                if(allocChartInstance) allocChartInstance.destroy(); 
                 allocChartInstance = new Chart(allocCtx, {
                     type: 'doughnut', data: { labels: chartLabels, datasets: [{ data: chartData, backgroundColor: chartColors, borderWidth: 0, hoverOffset: 10 }] },
                     options: { maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'right', labels: { usePointStyle: true, padding: 15, font: { size: 10, weight: 'bold' } } } } }
