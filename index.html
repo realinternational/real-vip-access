@@ -348,7 +348,10 @@
         let CURRENT_CLIENT = null;
         let CURRENT_HOLDINGS = [];
         let ACTIVE_STRATEGIES = [];
-        let BASE_ALLOCATIONS = { Residential: 0, Commercial: 0, Industrial: 0, "Private Debt": 0 };
+        
+        // 升级点：动态解析基准持仓，不再写死分类，未来如果加入 Land 或是 Data Center 自动计算！
+        let BASE_ALLOCATIONS = {};
+        
         // 确保新闻数据能够跨作用域调用以供筛选使用
         let GLOBAL_NEWS = [];
 
@@ -420,7 +423,7 @@
                 });
 
                 if (!client) {
-                    console.error("在表格中未匹配到该ID:", inputId);
+                    // 移除 console.error 避免控制台标红，转而交给 catch 块优雅处理
                     throw new Error("ID_NOT_FOUND");
                 }
 
@@ -451,7 +454,11 @@
                 document.getElementById('main-content').style.opacity = '1';
                 
             } catch (error) {
-                console.error("Auth Error Details:", error);
+                // 仅当不是常规的 ID 找不到时才在控制台打印真实错误，避免误导
+                if (error.message !== "ID_NOT_FOUND") {
+                    console.error("System Error Details:", error);
+                }
+                
                 // 极简报错，符合机构的干净与利落感
                 errorMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Investor not found';
                 errorMsg.classList.remove('hidden');
@@ -538,7 +545,7 @@
             document.getElementById('val-realized-yield').innerText = fmtMoney(parseNum(getVal(CURRENT_CLIENT, ['realizedyield', 'yield', '实现收益', '历史收益'])));
             
             // C. Build Dynamic Portfolio & Extract Base Allocations
-            BASE_ALLOCATIONS = { Residential: 0, Commercial: 0, Industrial: 0, "Private Debt": 0 };
+            BASE_ALLOCATIONS = {}; // 重置全局状态，全动态侦测
             renderDynamicPortfolio(CURRENT_HOLDINGS);
 
             // D. Build Dynamic Strategies (Lab)
@@ -572,11 +579,13 @@
             list.innerHTML = holdings.map((p, idx) => {
                 // 强大的映射抓取：无论表头是Type, Class 还是 类别，通通拿下
                 const typeRaw = getVal(p, ['type', 'assettype', 'class', '资产类别', '类别']) || 'Other';
+                const prin = parseNum(getVal(p, ['principal', 'investment', '本金', '投入本金']));
                 
-                // Track for charts
-                if(BASE_ALLOCATIONS[typeRaw] !== undefined) {
-                    BASE_ALLOCATIONS[typeRaw] += parseNum(getVal(p, ['principal', 'investment', '本金', '投入本金']));
+                // Track for charts dynamically - 动态将新分类（如Land）注入系统分配
+                if(BASE_ALLOCATIONS[typeRaw] === undefined) {
+                    BASE_ALLOCATIONS[typeRaw] = 0;
                 }
+                BASE_ALLOCATIONS[typeRaw] += prin;
 
                 // 完美支持您截图中的 VIBE 列情绪控制
                 let vibeClass = getVal(p, ['vibe', '风格', '氛围']);
@@ -586,7 +595,7 @@
                     else if(typeRaw.toLowerCase() === 'commercial') vibeClass = "vibe-stable";
                     else if(typeRaw.toLowerCase() === 'industrial') vibeClass = "border-l-4 border-[#17433a]";
                     else if(typeRaw.toLowerCase() === 'private debt') vibeClass = "border-l-4 border-[#717375]";
-                    else vibeClass = "border-l-4 border-stone-300";
+                    else vibeClass = "border-l-4 border-stone-300"; // 兜底颜色，给 Land 等新资产
                 }
 
                 // VIBE 智能语义补全：根据氛围自动生成高逼格 IR 总结
@@ -830,31 +839,28 @@
             let monthlyAdd = 0; 
             let equityAdd = 0; 
             
-            // Deep copy base allocations
-            let simBals = { 
-                Residential: BASE_ALLOCATIONS.Residential || 0, 
-                Commercial: BASE_ALLOCATIONS.Commercial || 0, 
-                Industrial: BASE_ALLOCATIONS.Industrial || 0, 
-                "Private Debt": BASE_ALLOCATIONS["Private Debt"] || 0 
-            }; 
+            // Deep copy dynamically detected base allocations
+            let simBals = { ...BASE_ALLOCATIONS }; 
 
             const checkboxes = document.querySelectorAll('.strategy-checkbox');
             checkboxes.forEach((chk, idx) => {
                 if(chk.checked) {
                     const inputVal = parseNum(document.getElementById(`val-strat-${idx}`).value);
-                    const mMult = parseNum(chk.getAttribute('data-mmult')); // e.g., 0.08
-                    const eMult = parseNum(chk.getAttribute('data-emult')); // e.g., 0.45
-                    const assetClass = chk.getAttribute('data-asset');
+                    const mMult = parseNum(chk.getAttribute('data-mmult'));
+                    const eMult = parseNum(chk.getAttribute('data-emult'));
+                    const assetClass = chk.getAttribute('data-asset') || 'Other';
 
                     // 数值换算防御：如果表里填了年化0.08，系统自动除以12算出月现金流
                     monthlyAdd += (inputVal * mMult) / 12; 
                     equityAdd += inputVal * eMult;
 
-                    // Support fallback logic if column names misalign
+                    // Dynamic fallback logic for newly detected categories
                     let mappedClass = Object.keys(simBals).find(k => k.toLowerCase() === assetClass.toLowerCase());
-                    if(mappedClass) {
-                        simBals[mappedClass] += inputVal;
+                    if(!mappedClass) {
+                        mappedClass = assetClass;
+                        simBals[mappedClass] = 0;
                     }
+                    simBals[mappedClass] += inputVal;
                 }
             });
 
@@ -862,23 +868,26 @@
             document.getElementById('res-equity').innerText = '+$' + Math.round(equityAdd).toLocaleString();
 
             if(proChartInstance) {
-                // Keep ordering strict for color mapping: Resi, Comm, Ind, Debt
-                const dataArray = [simBals.Residential, simBals.Commercial, simBals.Industrial, simBals["Private Debt"]];
-                proChartInstance.data.datasets[0].data = dataArray;
+                const dynamicLabels = Object.keys(simBals);
+                const dynamicData = Object.values(simBals);
+                // 给新分类（如Land）准备的高级色板扩展
+                const extendedPalette = ['#17433a', '#b0955b', '#99b2ac', '#717375', '#d4c5b0', '#2d3748', '#8b5cf6', '#ecc94b'];
+                const dynamicColors = dynamicLabels.map((_, i) => extendedPalette[i % extendedPalette.length]);
+                
+                proChartInstance.data.labels = dynamicLabels;
+                proChartInstance.data.datasets[0].data = dynamicData;
+                proChartInstance.data.datasets[0].backgroundColor = dynamicColors;
                 proChartInstance.update();
             }
         }
 
         function initCharts() {
-            const chartLabels = ['Residential', 'Commercial', 'Industrial', 'Private Debt'];
-            // Injecting live Base Allocations calculated from Google Sheet 2
-            const chartData = [
-                BASE_ALLOCATIONS.Residential || 0, 
-                BASE_ALLOCATIONS.Commercial || 0, 
-                BASE_ALLOCATIONS.Industrial || 0, 
-                BASE_ALLOCATIONS["Private Debt"] || 0
-            ];
-            const chartColors = ['#17433a', '#b0955b', '#99b2ac', '#717375'];
+            const chartLabels = Object.keys(BASE_ALLOCATIONS);
+            const chartData = Object.values(BASE_ALLOCATIONS);
+            
+            // Extended color palette for automatically detected new asset classes (e.g. Land, Data Centers)
+            const extendedPalette = ['#17433a', '#b0955b', '#99b2ac', '#717375', '#d4c5b0', '#2d3748', '#8b5cf6', '#ecc94b'];
+            const chartColors = chartLabels.map((_, i) => extendedPalette[i % extendedPalette.length]);
 
             const allocCtx = document.getElementById('allocationChart')?.getContext('2d');
             if(allocCtx) {
