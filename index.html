@@ -76,6 +76,16 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
+        /* --- 新增：勾选后的打钩与反色动效 --- */
+        .strategy-checkbox:checked + .strategy-inner .strat-check {
+            opacity: 1 !important;
+            transform: scale(1) !important;
+        }
+        .strategy-checkbox:checked + .strategy-inner .strat-icon-box {
+            background-color: var(--forest-green) !important;
+            color: var(--pure-white) !important;
+        }
+
         /* View transition mechanism */
         .view-section { 
             position: absolute; 
@@ -731,7 +741,11 @@
                     <input type="checkbox" class="strategy-checkbox hidden" id="${sId}" data-mmult="${mMult}" data-emult="${eMult}" data-asset="${sClass}" onchange="runSim()">
                     <div class="strategy-inner p-6 bg-white flex flex-col md:flex-row justify-between items-center gap-6 cursor-pointer border border-stone-200 hover:border-[#b0955b]/50">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-[#f3eee4] text-[#17433a] rounded-xl flex items-center justify-center text-xl transition-all shadow-sm"><i class="${sIcon}"></i></div>
+                            <!-- 精准修改点：加入 strat-icon-box 类，并在内部新增一个隐形的金色小对钩 strat-check -->
+                            <div class="w-12 h-12 flex-shrink-0 bg-[#f3eee4] text-[#17433a] rounded-xl flex items-center justify-center text-xl transition-all shadow-sm relative strat-icon-box">
+                                <i class="${sIcon}"></i>
+                                <div class="strat-check absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#b0955b] rounded-full text-white text-[10px] flex items-center justify-center opacity-0 scale-50 transition-all duration-300 border-2 border-white shadow-sm"><i class="fa-solid fa-check"></i></div>
+                            </div>
                             <div>
                                 <h4 class="text-base font-black text-[#0a0a0b]">${sName}</h4>
                                 ${sLink ? `<p class="text-[10px] text-[#17433a] font-bold uppercase underline mt-1 mb-1 hover:text-[#b0955b]" onclick="window.open('${sLink}', '_blank'); event.preventDefault();">View Strategy Summary <i class="fa-solid fa-link ml-0.5"></i></p>` : ''}
